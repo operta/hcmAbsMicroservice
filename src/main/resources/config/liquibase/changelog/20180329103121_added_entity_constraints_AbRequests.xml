@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <!--
+        Added the constraints for entity AbRequests.
+    -->
+    <changeSet id="20180329103121-2" author="jhipster">
+        
+        <addForeignKeyConstraint baseColumnNames="id_absence_type_id"
+                                 baseTableName="ab_requests"
+                                 constraintName="ab_requests_id_absence_ty_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="ab_absence_types"/>
+
+        <addForeignKeyConstraint baseColumnNames="id_status_id"
+                                 baseTableName="ab_requests"
+                                 constraintName="fk_ab_requests_id_status_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="ab_statuses"/>
+
+        <addForeignKeyConstraint baseColumnNames="bt_id_accomodation_id"
+                                 baseTableName="ab_requests"
+                                 constraintName="ab_requests_bt_id_accomod_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="ab_accomodation_types"/>
+
+        <addForeignKeyConstraint baseColumnNames="bt_id_transport_id"
+                                 baseTableName="ab_requests"
+                                 constraintName="ab_requests_bt_id_transpo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="ab_transport_types"/>
+
+        <addForeignKeyConstraint baseColumnNames="bt_id_purpose_id"
+                                 baseTableName="ab_requests"
+                                 constraintName="ab_requests_bt_id_purpose_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="ab_travel_purposes"/>
+
+        <addForeignKeyConstraint baseColumnNames="bt_region_country_id"
+                                 baseTableName="ab_requests"
+                                 constraintName="ab_requests_bt_region_cou_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="rg_regions"/>
+
+        <addForeignKeyConstraint baseColumnNames="bt_region_place_id"
+                                 baseTableName="ab_requests"
+                                 constraintName="ab_requests_bt_region_pla_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="rg_regions"/>
+
+        <addForeignKeyConstraint baseColumnNames="id_employee_id"
+                                 baseTableName="ab_requests"
+                                 constraintName="fk_ab_requests_id_employee_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="em_employees"/>
+
+    </changeSet>
+</databaseChangeLog>

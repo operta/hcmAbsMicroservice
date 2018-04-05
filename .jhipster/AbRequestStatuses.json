@@ -1,0 +1,50 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idStatus",
+            "otherEntityName": "abStatuses",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestStatuses"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idRequest",
+            "otherEntityName": "abRequests",
+            "otherEntityField": "id",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestStatuses"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "dateFrom",
+            "fieldType": "LocalDate"
+        },
+        {
+            "fieldName": "createdBy",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "createdAt",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "updatedBy",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "updatedAt",
+            "fieldType": "Instant"
+        }
+    ],
+    "changelogDate": "20180329103131",
+    "entityTableName": "ab_request_statuses",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "no",
+    "jpaMetamodelFiltering": false,
+    "microserviceName": "hcmAbsMicroservice"
+}

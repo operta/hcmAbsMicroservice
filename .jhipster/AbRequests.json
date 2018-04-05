@@ -1,0 +1,132 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idAbsenceType",
+            "otherEntityName": "abAbsenceTypes",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequests"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idStatus",
+            "otherEntityName": "abStatuses",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequests"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "btIdAccomodation",
+            "otherEntityName": "abAccomodationTypes",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequests"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "btIdTransport",
+            "otherEntityName": "abTransportTypes",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequests"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "btIdPurpose",
+            "otherEntityName": "abTravelPurposes",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequests"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "btRegionCountry",
+            "otherEntityName": "rgRegions",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequests"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "btRegionPlace",
+            "otherEntityName": "rgRegions",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequests"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idEmployee",
+            "otherEntityName": "emEmployees",
+            "otherEntityField": "id",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequests"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "description",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "createdBy",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "createdAt",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "updatedBy",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "updatedAt",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "dateFrom",
+            "fieldType": "LocalDate"
+        },
+        {
+            "fieldName": "dateTo",
+            "fieldType": "LocalDate"
+        },
+        {
+            "fieldName": "year",
+            "fieldType": "Integer"
+        },
+        {
+            "fieldName": "noOfDays",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "noOfDaysLeft",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "btAdvanceAmount",
+            "fieldType": "Integer"
+        },
+        {
+            "fieldName": "btAdvanceCurrency",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20180329103121",
+    "entityTableName": "ab_requests",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "no",
+    "jpaMetamodelFiltering": false,
+    "microserviceName": "hcmAbsMicroservice"
+}

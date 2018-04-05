@@ -1,0 +1,58 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idAbsenceType",
+            "otherEntityName": "abAbsenceTypes",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abPermittedStatusChanges"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idStatusFrom",
+            "otherEntityName": "abStatuses",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abPermittedStatusChanges"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idStatusTo",
+            "otherEntityName": "abStatuses",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abPermittedStatusChanges"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "description",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "createdBy",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "createdAt",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "updatedBy",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "updatedAt",
+            "fieldType": "Instant"
+        }
+    ],
+    "changelogDate": "20180329103120",
+    "entityTableName": "ab_permitted_status_changes",
+    "dto": "mapstruct",
+    "pagination": "no",
+    "service": "no",
+    "jpaMetamodelFiltering": false,
+    "microserviceName": "hcmAbsMicroservice"
+}

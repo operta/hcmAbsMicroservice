@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <!--
+        Added the constraints for entity AbRequestReports.
+    -->
+    <changeSet id="20180329103134-2" author="jhipster">
+        
+        <addForeignKeyConstraint baseColumnNames="id_request_id"
+                                 baseTableName="arr"
+                                 constraintName="ab_request_rep_id_request_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="ab_requests"/>
+
+        <addForeignKeyConstraint baseColumnNames="id_departure_country_id"
+                                 baseTableName="arr"
+                                 constraintName="ab_request_rep_id_departure_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="rg_regions"/>
+
+        <addForeignKeyConstraint baseColumnNames="id_departure_place_id"
+                                 baseTableName="arr"
+                                 constraintName="ab_request_rep_id_departure_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="rg_regions"/>
+
+        <addForeignKeyConstraint baseColumnNames="id_destination_country_id"
+                                 baseTableName="arr"
+                                 constraintName="ab_request_rep_id_destinatio_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="rg_regions"/>
+
+        <addForeignKeyConstraint baseColumnNames="id_destination_place_id"
+                                 baseTableName="arr"
+                                 constraintName="ab_request_rep_id_destinatio_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="rg_regions"/>
+
+        <addForeignKeyConstraint baseColumnNames="id_document_link_id"
+                                 baseTableName="arr"
+                                 constraintName="ab_request_rep_id_document_l_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="dm_document_links"/>
+
+        <addForeignKeyConstraint baseColumnNames="id_document_type_id"
+                                 baseTableName="arr"
+                                 constraintName="ab_request_rep_id_document_t_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="dm_document_types"/>
+
+    </changeSet>
+</databaseChangeLog>

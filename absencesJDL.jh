@@ -1,0 +1,288 @@
+entity AbTransportTypes {
+	id Integer required,
+	name String required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbTravelPurposes {
+	id Integer required,
+	name String required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbAccomodationTypes {
+	id Integer required,
+	name String required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbStatuses {
+	id Integer required,
+	name String required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbAbsenceTypes {
+	id Integer required,
+    code String required,
+	name String required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbPermittedStatusChanges {
+	id Integer required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbRequests {
+	id Integer required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant,
+    dateFrom LocalDate,
+    dateTo LocalDate,
+    year Integer,
+    noOfDays Integer required,
+    noOfDaysLeft Integer required,
+    btAdvanceAmount Integer,
+    btAdvanceCurrency String
+}
+entity RgRegionTypes {
+	id Integer required,
+    code String required,
+	name String required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+
+entity RgRegions {
+	id Integer required,
+    code String required,
+	name String required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity EmEmployees {
+	id Integer required,
+    code String required,
+    name String required,
+    middleName String,
+    surname String,
+    maidenName String,
+    disabilityDegree Integer,
+    ethnicGroup String,
+    gender String,
+    residentialSituation String,
+    maritalStatus String,
+    bloodGroup String,
+    dateOfBirth LocalDate,
+    hireDate LocalDate,
+    ssn String,
+    taxNumber String,
+    imagePath String,
+    phoneNumber String,
+    email String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity LeLegalEntityTypes {
+	id Integer required,
+	code String required,
+	name String required,
+    description String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity LeLegalEntities {
+ 	id Integer required,
+    code String required,
+    name String,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant,
+    idNumber String,
+    dutyNumber String,
+    address String required,
+    postalNumber String required,
+}
+entity EmEmpTypes {
+	id Integer required,
+	code String required,
+	name String required,
+	description String,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+
+entity EmStatuses {
+	id Integer required,
+	code String required,
+	name String required,
+	description String,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity RgQualifications {
+	id Integer required,
+	code String required,
+	name String required,
+	description String,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbVacationLeaveDays {
+	id Integer required,
+	year Integer,
+	numberOfDays Integer,
+    numberOfDaysLastY Integer,
+    dateFrom LocalDate,
+    dateTo LocalDate,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbRequestStatuses {
+	id Integer required,
+    dateFrom LocalDate,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+
+entity AbCostTypes {
+	id Integer required,
+	name String required,
+	description String,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbRequestCosts {
+	id Integer required,
+	amount Integer,
+	currency String,
+    booked String,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+entity AbRequestReports {
+	id Integer required,
+	departureTime LocalDate,
+    arrivalTime LocalDate,
+    description String,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+
+entity DmDocumentLinks{
+	id Integer required,
+    documentName String,
+    fileName String,
+    filePath String,
+    uri String,
+    documentBlob Blob,
+    createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+
+entity DmDocumentTypes{
+	id Integer required,
+	code String required,
+	name String required,
+	description String,
+	createdBy String,
+    createdAt Instant,
+    updatedBy String,
+    updatedAt Instant
+}
+
+
+
+relationship OneToOne {
+	AbPermittedStatusChanges{idAbsenceType(name)} to AbAbsenceTypes
+    AbPermittedStatusChanges{idStatusFrom(name)} to AbStatuses
+    AbPermittedStatusChanges{idStatusTo(name)} to AbStatuses
+    RgRegions{idType(name)} to RgRegionTypes
+    RgRegions{idParent(name)} to RgRegions
+    AbRequests{idAbsenceType(name)} to AbAbsenceTypes
+    AbRequests{idStatus(name)} to AbStatuses
+    AbRequests{btIdAccomodation(name)} to AbAccomodationTypes
+    AbRequests{btIdTransport(name)} to AbTransportTypes
+    AbRequests{btIdPurpose(name)} to AbTravelPurposes
+    AbRequests{btRegionCountry(name)} to RgRegions
+    AbRequests{btRegionPlace(name)} to RgRegions
+    AbRequests{idEmployee} to EmEmployees
+    LeLegalEntities{idEntityType(name)} to LeLegalEntityTypes
+    LeLegalEntities{region(name)} to RgRegions
+    EmEmployees{idQualification(name)} to RgQualifications
+    EmEmployees{idEmploymentType(name)} to EmEmpTypes
+    EmEmployees{idLegalEntity(name)} to LeLegalEntities
+    EmEmployees{idStatus(name)} to EmStatuses
+    EmEmployees{idUser} to User
+    AbVacationLeaveDays{idEmployee} to EmEmployees
+    AbRequestStatuses{idStatus(name)} to AbStatuses
+    AbRequestStatuses{idRequest} to AbRequests
+    AbRequestCosts{idRequest} to AbRequests
+    AbRequestCosts{idCostType(name)} to AbCostTypes
+    AbRequestReports{idRequest} to AbRequests
+    AbRequestReports{idDepartureCountry(name)} to RgRegions
+    AbRequestReports{idDeparturePlace(name)} to RgRegions
+    AbRequestReports{idDestinationCountry(name)} to RgRegions
+    AbRequestReports{idDestinationPlace(name)} to RgRegions
+    AbRequestReports{idDocumentLink} to DmDocumentLinks
+    AbRequestReports{idDocumentType} to DmDocumentTypes
+}
+
+
+
+paginate AbRequests, AbRequestStatuses, AbRequestReports, AbRequestCosts with pagination
+
+ dto * with mapstruct
+
+

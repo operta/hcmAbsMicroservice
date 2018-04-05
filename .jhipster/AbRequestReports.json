@@ -1,0 +1,98 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idRequest",
+            "otherEntityName": "abRequests",
+            "otherEntityField": "id",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestReports"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idDepartureCountry",
+            "otherEntityName": "rgRegions",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestReports"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idDeparturePlace",
+            "otherEntityName": "rgRegions",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestReports"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idDestinationCountry",
+            "otherEntityName": "rgRegions",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestReports"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idDestinationPlace",
+            "otherEntityName": "rgRegions",
+            "otherEntityField": "name",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestReports"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idDocumentLink",
+            "otherEntityName": "dmDocumentLinks",
+            "otherEntityField": "id",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestReports"
+        },
+        {
+            "relationshipType": "one-to-one",
+            "relationshipName": "idDocumentType",
+            "otherEntityName": "dmDocumentTypes",
+            "otherEntityField": "id",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "abRequestReports"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "departureTime",
+            "fieldType": "LocalDate"
+        },
+        {
+            "fieldName": "arrivalTime",
+            "fieldType": "LocalDate"
+        },
+        {
+            "fieldName": "description",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "createdBy",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "createdAt",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "updatedBy",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "updatedAt",
+            "fieldType": "Instant"
+        }
+    ],
+    "changelogDate": "20180329103134",
+    "entityTableName": "ab_request_reports",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "no",
+    "jpaMetamodelFiltering": false,
+    "microserviceName": "hcmAbsMicroservice"
+}
