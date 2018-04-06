@@ -11,6 +11,7 @@ import ba.infostudio.com.service.mapper.EmEmployeesMapper;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -114,6 +115,24 @@ public class EmEmployeesResource {
         EmEmployeesDTO emEmployeesDTO = emEmployeesMapper.toDto(emEmployees);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(emEmployeesDTO));
     }
+
+
+    /**
+     * GET  /em-employees/user/:id : get the emEmployee by user id.
+     *
+     * @param id the id of the User to retrieve
+     * @return the ResponseEntity with status 200 (OK) and with body the emEmployees, or with status 404 (Not Found)
+     */
+    @GetMapping("/em-employees/user/{id}")
+    @Timed
+    @ResponseStatus(value = HttpStatus.OK)
+    public ResponseEntity<EmEmployeesDTO> getEmEmployeesByUserId(@PathVariable Integer id) {
+        log.debug("REST request to get EmEmployees by user id: {}", id);
+        EmEmployees emEmployees = emEmployeesRepository.findByIdUser(id);
+        EmEmployeesDTO emEmployeesDTO = emEmployeesMapper.toDto(emEmployees);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(emEmployeesDTO));
+    }
+
 
     /**
      * DELETE  /em-employees/:id : delete the "id" emEmployees.

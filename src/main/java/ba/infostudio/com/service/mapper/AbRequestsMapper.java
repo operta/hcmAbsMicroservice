@@ -26,6 +26,8 @@ public interface AbRequestsMapper extends EntityMapper<AbRequestsDTO, AbRequests
     @Mapping(source = "btRegionPlace.id", target = "btRegionPlaceId")
     @Mapping(source = "btRegionPlace.name", target = "btRegionPlaceName")
     @Mapping(source = "idEmployee.id", target = "idEmployeeId")
+    @Mapping(source = "idEmployee.name", target = "idEmployeeName")
+    @Mapping(source = "idEmployee.surname", target = "idEmployeeSurname")
     AbRequestsDTO toDto(AbRequests abRequests);
 
     @Mapping(source = "idAbsenceTypeId", target = "idAbsenceType")

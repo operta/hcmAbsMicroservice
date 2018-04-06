@@ -12,5 +12,5 @@ import org.springframework.data.jpa.repository.*;
 @SuppressWarnings("unused")
 @Repository
 public interface EmEmployeesRepository extends JpaRepository<EmEmployees, Long> {
-
+    EmEmployees findByIdUser(Integer id);
 }

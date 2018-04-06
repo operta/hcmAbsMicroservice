@@ -72,6 +72,11 @@ public class AbRequestsDTO implements Serializable {
 
     private Long idEmployeeId;
 
+    private String idEmployeeName;
+
+    private String idEmployeeSurname;
+
+
     public Long getId() {
         return id;
     }
@@ -294,6 +299,22 @@ public class AbRequestsDTO implements Serializable {
 
     public void setIdEmployeeId(Long emEmployeesId) {
         this.idEmployeeId = emEmployeesId;
+    }
+
+    public String getIdEmployeeName() {
+        return idEmployeeName;
+    }
+
+    public void setIdEmployeeName(String idEmployeeName) {
+        this.idEmployeeName = idEmployeeName;
+    }
+
+    public String getIdEmployeeSurname() {
+        return idEmployeeSurname;
+    }
+
+    public void setIdEmployeeSurname(String idEmployeeSurname) {
+        this.idEmployeeSurname = idEmployeeSurname;
     }
 
     @Override

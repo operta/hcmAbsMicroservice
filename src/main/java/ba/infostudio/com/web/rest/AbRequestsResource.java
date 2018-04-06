@@ -123,6 +123,37 @@ public class AbRequestsResource {
     }
 
     /**
+     * GET  /ab-requests/all : get the "id" abRequests.
+     *
+     * @return the ResponseEntity with status 200 (OK) and with body the abRequestsDTO, or with status 404 (Not Found)
+     */
+    @GetMapping("/ab-requests/all")
+    @Timed
+    public ResponseEntity<List<AbRequestsDTO>> getAllAbsenceRequests() {
+
+        List<AbRequests> abRequests = abRequestsRepository.findAll();
+        List<AbRequestsDTO> abRequestsDTO = abRequestsMapper.toDto(abRequests);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestsDTO));
+    }
+
+    /**
+     * GET  /ab-requests/employee/:employeeId : get the abRequests by employee.
+     *
+     * @param employeeId the employee id of the abRequestsDTO to retrieve
+     * @return the ResponseEntity with status 200 (OK) and with body the abRequestsDTO, or with status 404 (Not Found)
+     */
+    @GetMapping("/ab-requests/employee/{employeeId}")
+    @Timed
+    public ResponseEntity<List<AbRequestsDTO>> getAbRequestsByEmployee(@PathVariable Long employeeId) {
+        log.debug("REST request to get AbRequests by employee id : {}", employeeId);
+        List<AbRequests> abRequests = abRequestsRepository.findByIdEmployeeId(employeeId);
+        List<AbRequestsDTO> abRequestsDTO = abRequestsMapper.toDto(abRequests);
+        System.out.println(abRequestsDTO);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestsDTO));
+    }
+
+
+    /**
      * DELETE  /ab-requests/:id : delete the "id" abRequests.
      *
      * @param id the id of the abRequestsDTO to delete
