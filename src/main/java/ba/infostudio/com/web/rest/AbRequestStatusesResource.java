@@ -122,6 +122,20 @@ public class AbRequestStatusesResource {
     }
 
     /**
+     * GET  /ab-request-statuses/request/:id : get all the abRequestStatuses by request
+     *
+     * @param id of request
+     * @return the ResponseEntity with status 200 (OK) and the list of abRequestStatuses in body
+     */
+    @GetMapping("/ab-request-statuses/request/{id}")
+    @Timed
+    public ResponseEntity<List<AbRequestStatusesDTO>> getAllAbRequestStatusesByRequest(@PathVariable Long id) {
+
+        List<AbRequestStatuses> statuses = abRequestStatusesRepository.findByIdRequestId(id);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestStatusesMapper.toDto(statuses)));
+    }
+
+    /**
      * DELETE  /ab-request-statuses/:id : delete the "id" abRequestStatuses.
      *
      * @param id the id of the abRequestStatusesDTO to delete
