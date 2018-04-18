@@ -12,6 +12,8 @@ import org.mapstruct.*;
 public interface AbVacationLeaveDaysMapper extends EntityMapper<AbVacationLeaveDaysDTO, AbVacationLeaveDays> {
 
     @Mapping(source = "idEmployee.id", target = "idEmployeeId")
+    @Mapping(source = "idEmployee.name", target = "idEmployeeName")
+    @Mapping(source = "idEmployee.surname", target = "idEmployeeSurname")
     AbVacationLeaveDaysDTO toDto(AbVacationLeaveDays abVacationLeaveDays);
 
     @Mapping(source = "idEmployeeId", target = "idEmployee")

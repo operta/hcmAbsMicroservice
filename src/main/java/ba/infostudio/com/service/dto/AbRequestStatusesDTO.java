@@ -31,6 +31,7 @@ public class AbRequestStatusesDTO implements Serializable {
 
     private Long idRequestId;
 
+
     public Long getId() {
         return id;
     }

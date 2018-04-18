@@ -121,6 +121,19 @@ public class AbRequestCostsResource {
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestCostsDTO));
     }
 
+       /**
+     * GET  /ab-request-costs/request/:id : get all the absence costs by request
+     *
+     * @param id of request
+     * @return the ResponseEntity with status 200 (OK) and the list of abRequestCost in body
+     */
+    @GetMapping("/ab-request-costs/request/{id}")
+    @Timed
+    public ResponseEntity<List<AbRequestCostsDTO>> getAllReportsByRequestId(@PathVariable Long id) {
+        List<AbRequestCosts> costs = abRequestCostsRepository.findByIdRequestId(id);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestCostsMapper.toDto(costs)));
+    }
+
     /**
      * DELETE  /ab-request-costs/:id : delete the "id" abRequestCosts.
      *

@@ -106,6 +106,19 @@ public class AbRequestReportsResource {
         return new ResponseEntity<>(abRequestReportsMapper.toDto(page.getContent()), headers, HttpStatus.OK);
     }
 
+        /**
+     * GET  /ab-request-reports/request/:id : get all the absence reports by request
+     *
+     * @param id of request
+     * @return the ResponseEntity with status 200 (OK) and the list of abRequestReport in body
+     */
+    @GetMapping("/ab-request-reports/request/{id}")
+    @Timed
+    public ResponseEntity<List<AbRequestReportsDTO>> getAllReportsByRequestId(@PathVariable Long id) {
+        List<AbRequestReports> reports = abRequestReportsRepository.findByIdRequestId(id);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestReportsMapper.toDto(reports)));
+    }
+
     /**
      * GET  /ab-request-reports/:id : get the "id" abRequestReports.
      *

@@ -19,6 +19,7 @@ import java.net.URISyntaxException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for managing AbVacationLeaveDays.
@@ -113,6 +114,38 @@ public class AbVacationLeaveDaysResource {
         AbVacationLeaveDaysDTO abVacationLeaveDaysDTO = abVacationLeaveDaysMapper.toDto(abVacationLeaveDays);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abVacationLeaveDaysDTO));
     }
+
+        /**
+     * GET  /ab-vacation-leave-days/employee/:employeeId : get the vacation leave days by employee.
+     *
+     * @param employeeId the employee id
+  * @return the ResponseEntity with status 200 (OK) and with body the abVacationLeaveDaysDTO, or with status 404 (Not Found)
+     */
+    @GetMapping("/ab-vacation-leave-days/employee/{employeeId}")
+    @Timed
+    public ResponseEntity<List<AbVacationLeaveDaysDTO>> getAbVacationLeaveDaysByEmployeeId(@PathVariable Long employeeId) {
+        log.debug("REST request to get leave days by employee id : {}", employeeId);
+        List<AbVacationLeaveDays> leaveDays = abVacationLeaveDaysRepository.findByIdEmployeeId(employeeId);
+        List<AbVacationLeaveDaysDTO> ldDTO = abVacationLeaveDaysMapper.toDto(leaveDays);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(ldDTO));
+    }
+
+//             /**
+//      * GET  /ab-vacation-leave-days/remaining-days/:employeeId : get the vacation leave days remaining by employee.
+//      *
+//      * @param employeeId the employee id
+//   * @return the ResponseEntity with status 200 (OK) and with body the abVacationLeaveDaysDTO, or with status 404 (Not Found)
+//      */
+//     @GetMapping("/ab-vacation-leave-days/remaining-days/{employeeId}")
+//     @Timed
+//     public ResponseEntity<List<AbVacationLeaveDaysDTO>> getRemainingVacationDaysForEmployee(@PathVariable Long employeeId, @PathVariable Integer year ) {
+//         log.debug("REST request to get leave days by employee id : {}", employeeId);
+//         List<AbVacationLeaveDays> leaveDays = abVacationLeaveDaysRepository.findByIdEmployeeId(employeeId);
+//         List<AbVacationLeaveDays> requestedYearLeaveDays = leaveDays.stream().filter(p -> p.getYear() == year).collect(Collectors.toList());
+//         List<AbRequests> current
+//         List<AbVacationLeaveDaysDTO> ldDTO = abVacationLeaveDaysMapper.toDto(leaveDays);
+//         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(ldDTO));
+//     }
 
     /**
      * DELETE  /ab-vacation-leave-days/:id : delete the "id" abVacationLeaveDays.
