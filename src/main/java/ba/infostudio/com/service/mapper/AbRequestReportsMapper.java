@@ -21,6 +21,8 @@ public interface AbRequestReportsMapper extends EntityMapper<AbRequestReportsDTO
     @Mapping(source = "idDestinationPlace.id", target = "idDestinationPlaceId")
     @Mapping(source = "idDestinationPlace.name", target = "idDestinationPlaceName")
     @Mapping(source = "idDocumentLink.id", target = "idDocumentLinkId")
+    @Mapping(source = "idDocumentLink.documentBlob", target = "idDocumentLinkDocumentBlob")
+    @Mapping(source = "idDocumentLink.documentBlobContentType", target = "idDocumentLinkDocumentBlobContentType")
     @Mapping(source = "idDocumentType.id", target = "idDocumentTypeId")
     AbRequestReportsDTO toDto(AbRequestReports abRequestReports);
 

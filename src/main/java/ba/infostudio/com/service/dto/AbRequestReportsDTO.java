@@ -1,6 +1,7 @@
 package ba.infostudio.com.service.dto;
 
 
+import javax.persistence.Lob;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.io.Serializable;
@@ -50,6 +51,27 @@ public class AbRequestReportsDTO implements Serializable {
     private Long idDocumentLinkId;
 
     private Long idDocumentTypeId;
+
+    @Lob
+    private byte[] idDocumentLinkDocumentBlob;
+
+    private String idDocumentLinkDocumentBlobContentType;
+
+    public byte[] getIdDocumentLinkDocumentBlob() {
+        return idDocumentLinkDocumentBlob;
+    }
+
+    public void setIdDocumentLinkDocumentBlob(byte[] idDocumentLinkDocumentBlob) {
+        this.idDocumentLinkDocumentBlob = idDocumentLinkDocumentBlob;
+    }
+
+    public String getIdDocumentLinkDocumentBlobContentType() {
+        return idDocumentLinkDocumentBlobContentType;
+    }
+
+    public void setIdDocumentLinkDocumentBlobContentType(String idDocumentLinkDocumentBlobContentType) {
+        this.idDocumentLinkDocumentBlobContentType = idDocumentLinkDocumentBlobContentType;
+    }
 
     public Long getId() {
         return id;

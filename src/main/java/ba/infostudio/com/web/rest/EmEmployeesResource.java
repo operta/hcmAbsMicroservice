@@ -130,6 +130,9 @@ public class EmEmployeesResource {
         log.debug("REST request to get EmEmployees by user id: {}", id);
         EmEmployees emEmployees = emEmployeesRepository.findByIdUser(id);
         EmEmployeesDTO emEmployeesDTO = emEmployeesMapper.toDto(emEmployees);
+        if(emEmployeesDTO == null) {
+            emEmployeesDTO = new EmEmployeesDTO();
+        }
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(emEmployeesDTO));
     }
 
