@@ -10,4 +10,4 @@ CMD echo "The application will start in ${JHIPSTER_SLEEP}s..." && \
 
 EXPOSE 8081 5701/udp
 
-ADD *.war /app.war
+ADD target/*.war /app.war
