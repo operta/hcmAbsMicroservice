@@ -1,5 +1,7 @@
 package ba.infostudio.com.web.rest;
 
+import ba.infostudio.com.domain.AbVacationLeaveDays;
+import ba.infostudio.com.repository.AbVacationLeaveDaysRepository;
 import com.codahale.metrics.annotation.Timed;
 import ba.infostudio.com.domain.AbRequests;
 
@@ -40,11 +42,15 @@ public class AbRequestsResource {
 
     private final AbRequestsRepository abRequestsRepository;
 
+    private final AbVacationLeaveDaysRepository abVacationLeaveDaysRepository;
+
     private final AbRequestsMapper abRequestsMapper;
 
-    public AbRequestsResource(AbRequestsRepository abRequestsRepository, AbRequestsMapper abRequestsMapper) {
+    public AbRequestsResource(AbRequestsRepository abRequestsRepository, AbRequestsMapper abRequestsMapper,
+                              AbVacationLeaveDaysRepository abVacationLeaveDaysRepository) {
         this.abRequestsRepository = abRequestsRepository;
         this.abRequestsMapper = abRequestsMapper;
+        this.abVacationLeaveDaysRepository = abVacationLeaveDaysRepository;
     }
 
     /**
@@ -61,7 +67,23 @@ public class AbRequestsResource {
         if (abRequestsDTO.getId() != null) {
             throw new BadRequestAlertException("A new abRequests cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        abRequestsDTO.setYear(LocalDate.now().getYear());
         AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
+
+        List<AbRequests> allAbRequestsForEmp = this.abRequestsRepository
+            .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(),
+                abRequests.getYear());
+        if(allAbRequestsForEmp == null || allAbRequestsForEmp.size() == 0){
+            AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
+                .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(), abRequests.getYear());
+            abRequests.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays() - abRequestsDTO.getNoOfDays());
+        }else{
+            AbRequests lastRequest = allAbRequestsForEmp.stream()
+                                                        .max(Comparator.comparing(AbRequests::getcreatedAt))
+                                                        .orElse(null);
+            abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft()-abRequests.getNoOfDays());
+        }
+
         abRequests = abRequestsRepository.save(abRequests);
         AbRequestsDTO result = abRequestsMapper.toDto(abRequests);
         return ResponseEntity.created(new URI("/api/ab-requests/" + result.getId()))
