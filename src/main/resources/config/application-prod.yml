@@ -64,6 +64,7 @@ spring:
             discovery:
                 enabled: true
 
+liquibase.enabled: false
 liquibase:
     contexts: prod
 
@@ -115,7 +116,7 @@ jhipster:
     security:
         authentication:
             jwt:
-                secret: c9b627440cb908a8cd7830b024ff700aba80fe63
+                secret: 2319fb1694dbd1180fa0474a6b2890112243a567
                 # Token is valid 24 hours
                 token-validity-in-seconds: 86400
                 token-validity-in-seconds-for-remember-me: 2592000
