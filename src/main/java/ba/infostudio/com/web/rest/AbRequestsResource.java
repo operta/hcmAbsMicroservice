@@ -211,6 +211,18 @@ public class AbRequestsResource {
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestsDTO));
     }
 
+
+    @GetMapping("/ab-requests/number-of-days-left/employee/{employeeId}")
+    @Timed
+    public ResponseEntity<AbRequestsDTO> getNumberOfDaysLeftByEmpId(@PathVariable Long employeeId) {
+        log.debug("REST request to get AbRequests : {}", employeeId);
+        List<AbRequests> abRequests = abRequestsRepository.findByIdEmployeeIdAndYear(employeeId, LocalDate.now().getYear());
+        AbRequests lastRequest = abRequests.stream()
+                                           .max(Comparator.comparing(AbRequests::getcreatedAt))
+                                           .orElse(null);
+        AbRequestsDTO abRequestsDTO = abRequestsMapper.toDto(lastRequest);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestsDTO));
+    }
     /**
      * GET  /ab-requests/all : get the "id" abRequests.
      *
