@@ -17,10 +17,12 @@ import java.util.List;
 @Repository
 public interface AbRequestsRepository extends JpaRepository<AbRequests, Long> {
     List<AbRequests> findByIdEmployeeId(Long id);
+    List<AbRequests> findByIdEmployeeIdAndYear(Long id, Integer year);
     List<AbRequests> findByDateFromGreaterThanEqual(LocalDate dateFrom);
     List<AbRequests> findByDateToLessThanEqual(LocalDate dateTo);
     List<AbRequests> findByIdAbsenceTypeId(Long id);
     List<AbRequests> findByIdStatusId(Long id);
     List<AbRequests> findById(Long id);
+
 
 }

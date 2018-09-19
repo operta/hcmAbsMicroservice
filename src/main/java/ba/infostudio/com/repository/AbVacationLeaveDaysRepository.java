@@ -15,4 +15,5 @@ import org.springframework.data.jpa.repository.*;
 @Repository
 public interface AbVacationLeaveDaysRepository extends JpaRepository<AbVacationLeaveDays, Long> {
     List<AbVacationLeaveDays> findByIdEmployeeId(Long id);
+    AbVacationLeaveDays findByIdEmployeeIdAndYear(Long id, Integer year);
 }
