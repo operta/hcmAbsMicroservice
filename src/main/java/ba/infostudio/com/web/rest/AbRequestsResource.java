@@ -217,9 +217,18 @@ public class AbRequestsResource {
     public ResponseEntity<AbRequestsDTO> getNumberOfDaysLeftByEmpId(@PathVariable Long employeeId) {
         log.debug("REST request to get AbRequests : {}", employeeId);
         List<AbRequests> abRequests = abRequestsRepository.findByIdEmployeeIdAndYear(employeeId, LocalDate.now().getYear());
-        AbRequests lastRequest = abRequests.stream()
-                                           .max(Comparator.comparing(AbRequests::getcreatedAt))
-                                           .orElse(null);
+        AbRequests lastRequest;
+        if(abRequests.size() > 0) {
+             lastRequest = abRequests.stream()
+                .max(Comparator.comparing(AbRequests::getcreatedAt))
+                .orElse(null);
+        }else{
+            lastRequest = new AbRequests();
+            AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
+                .findByIdEmployeeIdAndYear(employeeId, LocalDate.now().getYear());
+            lastRequest.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays());
+            lastRequest.setNoOfDays(0);
+        }
         AbRequestsDTO abRequestsDTO = abRequestsMapper.toDto(lastRequest);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestsDTO));
     }
