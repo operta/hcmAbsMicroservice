@@ -22,8 +22,10 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
 
 /**
  * REST controller for managing AbRequestCosts.
@@ -119,6 +121,56 @@ public class AbRequestCostsResource {
         AbRequestCosts abRequestCosts = abRequestCostsRepository.findOne(id);
         AbRequestCostsDTO abRequestCostsDTO = abRequestCostsMapper.toDto(abRequestCosts);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestCostsDTO));
+    }
+    
+    static class YearlyCost{
+        private Integer year;
+        private Double totalCostInDollars;
+
+        public YearlyCost(Integer year, Double totalCostInDollars) {
+            this.year = year;
+            this.totalCostInDollars = totalCostInDollars;
+        }
+
+        public Integer getYear() {
+            return year;
+        }
+
+        public void setYear(Integer year) {
+            this.year = year;
+        }
+
+        public Double getTotalCostInDollars() {
+            return totalCostInDollars;
+        }
+
+        public void setTotalCostInDollars(Double totalCostInDollars) {
+            this.totalCostInDollars = totalCostInDollars;
+        }
+    }
+    
+    @GetMapping("/ab-request-costs/total-per-year")
+    @Timed
+    public ResponseEntity<List<YearlyCost>> getAbRequestCostsPerTotalPerYear() {
+        List<AbRequestCosts> abRequestCosts = this.abRequestCostsRepository.findAll();
+
+        Map<Integer, Double> yearlyCost = new TreeMap<>();
+
+        for (AbRequestCosts cost : abRequestCosts) {
+            int yearOfCost = LocalDateTime.ofInstant(cost.getcreatedAt(), ZoneOffset.UTC).getYear();
+            if(yearlyCost.containsKey(yearOfCost)){
+                double previousCost = yearlyCost.get(yearOfCost);
+                yearlyCost.put(yearOfCost, cost.getAmountDollar() + previousCost);
+            }else{
+                yearlyCost.put(yearOfCost, cost.getAmountDollar());
+            }
+        }
+        List<YearlyCost> yearlyCostList = new ArrayList<>();
+        for (Map.Entry<Integer, Double> calculatedYear : yearlyCost.entrySet()) {
+            yearlyCostList.add(new YearlyCost(calculatedYear.getKey(), calculatedYear.getValue()));
+        }
+        
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(yearlyCostList));
     }
 
        /**

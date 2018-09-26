@@ -33,6 +33,9 @@ public class AbRequestCosts extends AbstractAuditingEntity implements Serializab
     @Column(name = "booked")
     private String booked;
 
+    @Column(name = "amount_dollar")
+    private Double amountDollar;
+
     @OneToOne
     @JoinColumn(name = "id_request")
     private AbRequests idRequest;
@@ -40,6 +43,14 @@ public class AbRequestCosts extends AbstractAuditingEntity implements Serializab
     @OneToOne
     @JoinColumn(name = "id_cost_type")
     private AbCostTypes idCostType;
+
+    public Double getAmountDollar() {
+        return amountDollar;
+    }
+
+    public void setAmountDollar(Double amountDollar) {
+        this.amountDollar = amountDollar;
+    }
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {

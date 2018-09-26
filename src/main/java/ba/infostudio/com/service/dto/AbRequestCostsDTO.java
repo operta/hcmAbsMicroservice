@@ -34,6 +34,16 @@ public class AbRequestCostsDTO implements Serializable {
 
     private String idCostTypeName;
 
+    private Double amountDollar;
+
+    public Double getAmountDollar() {
+        return amountDollar;
+    }
+
+    public void setAmountDollar(Double amountDollar) {
+        this.amountDollar = amountDollar;
+    }
+
     public Long getId() {
         return id;
     }
