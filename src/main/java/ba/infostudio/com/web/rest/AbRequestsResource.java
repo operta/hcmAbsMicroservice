@@ -1,6 +1,9 @@
 package ba.infostudio.com.web.rest;
 
+import ba.infostudio.com.domain.AbRequestCosts;
+import ba.infostudio.com.domain.AbStatuses;
 import ba.infostudio.com.domain.AbVacationLeaveDays;
+import ba.infostudio.com.repository.AbStatusesRepository;
 import ba.infostudio.com.repository.AbVacationLeaveDaysRepository;
 import com.codahale.metrics.annotation.Timed;
 import ba.infostudio.com.domain.AbRequests;
@@ -44,13 +47,17 @@ public class AbRequestsResource {
 
     private final AbVacationLeaveDaysRepository abVacationLeaveDaysRepository;
 
+    private final AbStatusesRepository abStatusesRepository;
+
     private final AbRequestsMapper abRequestsMapper;
 
     public AbRequestsResource(AbRequestsRepository abRequestsRepository, AbRequestsMapper abRequestsMapper,
-                              AbVacationLeaveDaysRepository abVacationLeaveDaysRepository) {
+                              AbVacationLeaveDaysRepository abVacationLeaveDaysRepository,
+                              AbStatusesRepository abStatusesRepository) {
         this.abRequestsRepository = abRequestsRepository;
         this.abRequestsMapper = abRequestsMapper;
         this.abVacationLeaveDaysRepository = abVacationLeaveDaysRepository;
+        this.abStatusesRepository = abStatusesRepository;
     }
 
     /**
@@ -69,20 +76,20 @@ public class AbRequestsResource {
         }
         abRequestsDTO.setYear(LocalDate.now().getYear());
         AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
-
         List<AbRequests> allAbRequestsForEmp = this.abRequestsRepository
             .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(),
                 abRequests.getYear());
         if(allAbRequestsForEmp == null || allAbRequestsForEmp.size() == 0){
             AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
                 .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(), abRequests.getYear());
-            abRequests.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays() - abRequestsDTO.getNoOfDays());
+            abRequests.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays());
         }else{
             AbRequests lastRequest = allAbRequestsForEmp.stream()
-                                                        .max(Comparator.comparing(AbRequests::getcreatedAt))
-                                                        .orElse(null);
-            abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft()-abRequests.getNoOfDays());
+                .max(Comparator.comparing(AbRequests::getupdatedAt))
+                .orElse(null);
+            abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft());
         }
+
 
         abRequests = abRequestsRepository.save(abRequests);
         AbRequestsDTO result = abRequestsMapper.toDto(abRequests);
@@ -107,7 +114,34 @@ public class AbRequestsResource {
         if (abRequestsDTO.getId() == null) {
             return createAbRequests(abRequestsDTO);
         }
+
+        AbRequests oldAbRequest = abRequestsRepository.findOne(abRequestsDTO.getId());
         AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
+        abRequests.setNoOfDaysLeft(oldAbRequest.getNoOfDaysLeft());
+        abRequests.setYear(oldAbRequest.getYear());
+
+        AbStatuses abStatuses = abStatusesRepository.findOne(abRequestsDTO.getIdStatusId());
+        if(!oldAbRequest.getIdStatus().getId().equals(abRequestsDTO.getIdStatusId())){
+            if(abStatuses.getName().equals("Approved")) {
+                List<AbRequests> allAbRequestsForEmp = this.abRequestsRepository
+                    .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(),
+                        abRequestsDTO.getYear());
+                allAbRequestsForEmp.remove(oldAbRequest);
+                if (allAbRequestsForEmp.size() == 0) {
+                    AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
+                        .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(), abRequests.getYear());
+                    abRequests.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays() - abRequestsDTO.getNoOfDays());
+                } else {
+                    AbRequests lastRequest = allAbRequestsForEmp.stream()
+                        .max(Comparator.comparing(AbRequests::getcreatedAt))
+                        .orElse(null);
+                    abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft() - abRequests.getNoOfDays());
+                }
+            }
+        }
+        abRequestsRepository.updateAllAbRequestsWithNoOfDays(abRequests.getNoOfDaysLeft(),
+                                                             abRequestsDTO.getIdEmployeeId(),
+                                                             abRequests.getYear());
         abRequests = abRequestsRepository.save(abRequests);
         AbRequestsDTO result = abRequestsMapper.toDto(abRequests);
         return ResponseEntity.ok()
@@ -220,7 +254,7 @@ public class AbRequestsResource {
         AbRequests lastRequest;
         if(abRequests.size() > 0) {
              lastRequest = abRequests.stream()
-                .max(Comparator.comparing(AbRequests::getcreatedAt))
+                .max(Comparator.comparing(AbRequests::getupdatedAt))
                 .orElse(null);
         }else{
             lastRequest = new AbRequests();
