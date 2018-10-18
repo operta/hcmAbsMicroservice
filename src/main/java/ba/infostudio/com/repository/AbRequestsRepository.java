@@ -20,6 +20,7 @@ public interface AbRequestsRepository extends JpaRepository<AbRequests, Long> {
     List<AbRequests> findByIdEmployeeIdAndYear(Long id, Integer year);
     List<AbRequests> findByDateFromGreaterThanEqual(LocalDate dateFrom);
     List<AbRequests> findByDateToLessThanEqual(LocalDate dateTo);
+    List<AbRequests> findByDateFromLessThanEqualAndDateToGreaterThanEqual(LocalDate date1, LocalDate date2);
     List<AbRequests> findByIdAbsenceTypeId(Long id);
     List<AbRequests> findByIdStatusId(Long id);
     List<AbRequests> findById(Long id);

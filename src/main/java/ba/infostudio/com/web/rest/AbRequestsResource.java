@@ -195,6 +195,20 @@ public class AbRequestsResource {
         return result;
     }
 
+    @GetMapping("/ab-requests/search-by-date")
+    public ResponseEntity<List<AbRequestsDTO>> getAbRequestsBySearchParams(
+        @RequestParam(value = "date", required = false) LocalDate date)
+    {
+        List<AbRequests> list  = abRequestsRepository.findByDateFromLessThanEqualAndDateToGreaterThanEqual(date, date);
+
+        List<AbRequestsDTO> requests = new ArrayList<AbRequestsDTO>();
+        for(int i = 0; i < list.size(); i++) {
+            AbRequestsDTO item = abRequestsMapper.toDto(list.get(i));
+            requests.add(item);
+        }
+        return new ResponseEntity<>(requests, null, HttpStatus.OK);
+    }
+
 
     /**
      * GET  /ab-requests/:id : get the "id" abRequests.
