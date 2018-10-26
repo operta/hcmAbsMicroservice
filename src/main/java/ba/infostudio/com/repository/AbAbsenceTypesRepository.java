@@ -12,5 +12,6 @@ import org.springframework.data.jpa.repository.*;
 @SuppressWarnings("unused")
 @Repository
 public interface AbAbsenceTypesRepository extends JpaRepository<AbAbsenceTypes, Long> {
+    AbAbsenceTypes findByCode(String code);
 
 }

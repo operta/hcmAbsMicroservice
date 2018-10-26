@@ -1,6 +1,5 @@
 package ba.infostudio.com.service.dto;
 
-
 import java.time.Instant;
 import javax.validation.constraints.*;
 import java.io.Serializable;
@@ -13,7 +12,6 @@ public class AbAbsenceTypesDTO implements Serializable {
 
     private Long id;
 
-    @NotNull
     private String code;
 
     @NotNull

@@ -1,5 +1,7 @@
 package ba.infostudio.com.web.rest;
 
+import org.apache.commons.lang.RandomStringUtils;
+
 import com.codahale.metrics.annotation.Timed;
 import ba.infostudio.com.domain.AbAbsenceTypes;
 
@@ -55,6 +57,11 @@ public class AbAbsenceTypesResource {
         if (abAbsenceTypesDTO.getId() != null) {
             throw new BadRequestAlertException("A new abAbsenceTypes cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        String newCode = RandomStringUtils.randomAlphanumeric(7).toUpperCase();
+        while(abAbsenceTypesRepository.findByCode(newCode) != null){
+            newCode = RandomStringUtils.randomAlphanumeric(7).toUpperCase();
+        }
+        abAbsenceTypesDTO.setCode(newCode);
         AbAbsenceTypes abAbsenceTypes = abAbsenceTypesMapper.toEntity(abAbsenceTypesDTO);
         abAbsenceTypes = abAbsenceTypesRepository.save(abAbsenceTypes);
         AbAbsenceTypesDTO result = abAbsenceTypesMapper.toDto(abAbsenceTypes);
