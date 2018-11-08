@@ -6,8 +6,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -26,10 +25,10 @@ public class AbRequestReports implements Serializable {
     private Long id;
 
     @Column(name = "departure_time")
-    private LocalDate departureTime;
+    private LocalDateTime departureTime;
 
     @Column(name = "arrival_time")
-    private LocalDate arrivalTime;
+    private LocalDateTime arrivalTime;
 
     @Column(name = "description")
     private String description;
@@ -71,29 +70,29 @@ public class AbRequestReports implements Serializable {
         this.id = id;
     }
 
-    public LocalDate getDepartureTime() {
+    public LocalDateTime getDepartureTime() {
         return departureTime;
     }
 
-    public AbRequestReports departureTime(LocalDate departureTime) {
+    public AbRequestReports departureTime(LocalDateTime departureTime) {
         this.departureTime = departureTime;
         return this;
     }
 
-    public void setDepartureTime(LocalDate departureTime) {
+    public void setDepartureTime(LocalDateTime departureTime) {
         this.departureTime = departureTime;
     }
 
-    public LocalDate getArrivalTime() {
+    public LocalDateTime getArrivalTime() {
         return arrivalTime;
     }
 
-    public AbRequestReports arrivalTime(LocalDate arrivalTime) {
+    public AbRequestReports arrivalTime(LocalDateTime arrivalTime) {
         this.arrivalTime = arrivalTime;
         return this;
     }
 
-    public void setArrivalTime(LocalDate arrivalTime) {
+    public void setArrivalTime(LocalDateTime arrivalTime) {
         this.arrivalTime = arrivalTime;
     }
 
