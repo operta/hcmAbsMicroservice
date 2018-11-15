@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import org.springframework.data.jpa.repository.*;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 
@@ -15,4 +16,7 @@ import java.util.List;
 @Repository
 public interface AbRequestStatusesRepository extends JpaRepository<AbRequestStatuses, Long> {
     List<AbRequestStatuses> findByIdRequestId(Long id);
+
+    @Transactional
+    void deleteAllByIdRequestId(Long id);
 }

@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.*;
 
+import javax.transaction.Transactional;
+
 
 /**
  * Spring Data JPA repository for the AbRequestCosts entity.
@@ -15,4 +17,7 @@ import org.springframework.data.jpa.repository.*;
 @Repository
 public interface AbRequestCostsRepository extends JpaRepository<AbRequestCosts, Long> {
     List<AbRequestCosts> findByIdRequestId(Long id);
+
+    @Transactional
+    void deleteAllByIdRequestId(Long id);
 }

@@ -1,14 +1,9 @@
 package ba.infostudio.com.web.rest;
 
-import ba.infostudio.com.domain.AbRequestCosts;
-import ba.infostudio.com.domain.AbStatuses;
-import ba.infostudio.com.domain.AbVacationLeaveDays;
-import ba.infostudio.com.repository.AbStatusesRepository;
-import ba.infostudio.com.repository.AbVacationLeaveDaysRepository;
+import ba.infostudio.com.domain.*;
+import ba.infostudio.com.repository.*;
 import com.codahale.metrics.annotation.Timed;
-import ba.infostudio.com.domain.AbRequests;
 
-import ba.infostudio.com.repository.AbRequestsRepository;
 import ba.infostudio.com.web.rest.errors.BadRequestAlertException;
 import ba.infostudio.com.web.rest.util.HeaderUtil;
 import ba.infostudio.com.web.rest.util.PaginationUtil;
@@ -51,13 +46,21 @@ public class AbRequestsResource {
 
     private final AbRequestsMapper abRequestsMapper;
 
+    private AbRequestCostsRepository abRequestsCostsRepository;
+
+    private AbRequestStatusesRepository abRequestStatusesRepository;
+
     public AbRequestsResource(AbRequestsRepository abRequestsRepository, AbRequestsMapper abRequestsMapper,
                               AbVacationLeaveDaysRepository abVacationLeaveDaysRepository,
-                              AbStatusesRepository abStatusesRepository) {
+                              AbStatusesRepository abStatusesRepository,
+                              AbRequestCostsRepository abRequestsCostsRepository,
+                              AbRequestStatusesRepository abRequestStatusesRepository) {
         this.abRequestsRepository = abRequestsRepository;
         this.abRequestsMapper = abRequestsMapper;
         this.abVacationLeaveDaysRepository = abVacationLeaveDaysRepository;
         this.abStatusesRepository = abStatusesRepository;
+        this.abRequestsCostsRepository = abRequestsCostsRepository;
+        this.abRequestStatusesRepository = abRequestStatusesRepository;
     }
 
     /**
@@ -74,6 +77,12 @@ public class AbRequestsResource {
         if (abRequestsDTO.getId() != null) {
             throw new BadRequestAlertException("A new abRequests cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        if (abRequestsDTO.getIdStatusId() != null){
+            AbStatuses abStatuses = abStatusesRepository.findOne(abRequestsDTO.getIdStatusId());
+            if(abStatuses.getName().equals("Rejected")){
+                throw new BadRequestAlertException("A new abRequests cannot immediatelly be rejected", ENTITY_NAME, "abstatus_rejected");
+            }
+        }
         abRequestsDTO.setYear(LocalDate.now().getYear());
         AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
         List<AbRequests> allAbRequestsForEmp = this.abRequestsRepository
@@ -87,9 +96,11 @@ public class AbRequestsResource {
             AbRequests lastRequest = allAbRequestsForEmp.stream()
                 .max(Comparator.comparing(AbRequests::getupdatedAt))
                 .orElse(null);
-            abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft());
+            abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft() - abRequests.getNoOfDays());
         }
-
+        abRequestsRepository.updateAllAbRequestsWithNoOfDays(abRequests.getNoOfDaysLeft(),
+                                                             abRequestsDTO.getIdEmployeeId(),
+                                                             abRequests.getYear());
 
         abRequests = abRequestsRepository.save(abRequests);
         AbRequestsDTO result = abRequestsMapper.toDto(abRequests);
@@ -122,21 +133,11 @@ public class AbRequestsResource {
 
         AbStatuses abStatuses = abStatusesRepository.findOne(abRequestsDTO.getIdStatusId());
         if(!oldAbRequest.getIdStatus().getId().equals(abRequestsDTO.getIdStatusId())){
-            if(abStatuses.getName().equals("Approved")) {
-                List<AbRequests> allAbRequestsForEmp = this.abRequestsRepository
-                    .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(),
-                        abRequestsDTO.getYear());
-                allAbRequestsForEmp.remove(oldAbRequest);
-                if (allAbRequestsForEmp.size() == 0) {
-                    AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
-                        .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(), abRequests.getYear());
-                    abRequests.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays() - abRequestsDTO.getNoOfDays());
-                } else {
-                    AbRequests lastRequest = allAbRequestsForEmp.stream()
-                        .max(Comparator.comparing(AbRequests::getcreatedAt))
-                        .orElse(null);
-                    abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft() - abRequests.getNoOfDays());
-                }
+            if(abStatuses.getName().equals("Rejected")) {
+                abRequests.setNoOfDaysLeft(oldAbRequest.getNoOfDaysLeft() + oldAbRequest.getNoOfDays());
+            }
+            else if(oldAbRequest.getIdStatus().getName().equals("Rejected") && !abStatuses.getName().equals("Rejected")){
+                abRequests.setNoOfDaysLeft(oldAbRequest.getNoOfDaysLeft() - oldAbRequest.getNoOfDays());
             }
         }
         abRequestsRepository.updateAllAbRequestsWithNoOfDays(abRequests.getNoOfDaysLeft(),
@@ -321,6 +322,12 @@ public class AbRequestsResource {
     @Timed
     public ResponseEntity<Void> deleteAbRequests(@PathVariable Long id) {
         log.debug("REST request to delete AbRequests : {}", id);
+        AbRequests abRequests = this.abRequestsRepository.findOne(id);
+        abRequestStatusesRepository.deleteAllByIdRequestId(id);
+        abRequestsCostsRepository.deleteAllByIdRequestId(id);
+        abRequestsRepository.updateAllAbRequestsWithNoOfDays(abRequests.getNoOfDaysLeft() + abRequests.getNoOfDays(),
+                                                            abRequests.getIdEmployee().getId(),
+                                                            abRequests.getYear());
         abRequestsRepository.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
