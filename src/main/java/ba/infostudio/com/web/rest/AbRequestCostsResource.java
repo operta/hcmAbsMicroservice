@@ -123,7 +123,7 @@ public class AbRequestCostsResource {
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestCostsDTO));
     }
     
-    static class YearlyCost{
+    public static class YearlyCost{
         private Integer year;
         private Double totalCostInDollars;
 
@@ -147,15 +147,23 @@ public class AbRequestCostsResource {
         public void setTotalCostInDollars(Double totalCostInDollars) {
             this.totalCostInDollars = totalCostInDollars;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == this){
+                return true;
+            }
+            if(o == null || o.getClass() != getClass()){
+                return false;
+            }
+            YearlyCost otherCost = (YearlyCost) o;
+            return otherCost.year.equals(this.year) &&
+                Math.abs(otherCost.getTotalCostInDollars() - this.getTotalCostInDollars()) < 1e-9;
+        }
     }
-    
-    @GetMapping("/ab-request-costs/total-per-year")
-    @Timed
-    public ResponseEntity<List<YearlyCost>> getAbRequestCostsPerTotalPerYear() {
-        List<AbRequestCosts> abRequestCosts = this.abRequestCostsRepository.findAll();
 
+    public static List<YearlyCost> getYearlyCostList(List<AbRequestCosts> abRequestCosts){
         Map<Integer, Double> yearlyCost = new TreeMap<>();
-
         for (AbRequestCosts cost : abRequestCosts) {
             int yearOfCost = LocalDateTime.ofInstant(cost.getcreatedAt(), ZoneOffset.UTC).getYear();
             if(yearlyCost.containsKey(yearOfCost)){
@@ -166,10 +174,18 @@ public class AbRequestCostsResource {
             }
         }
         List<YearlyCost> yearlyCostList = new ArrayList<>();
-        for (Map.Entry<Integer, Double> calculatedYear : yearlyCost.entrySet()) {
+        for(Map.Entry<Integer, Double> calculatedYear: yearlyCost.entrySet()){
             yearlyCostList.add(new YearlyCost(calculatedYear.getKey(), calculatedYear.getValue()));
         }
-        
+        return yearlyCostList;
+
+    }
+    
+    @GetMapping("/ab-request-costs/total-per-year")
+    @Timed
+    public ResponseEntity<List<YearlyCost>> getAbRequestCostsPerTotalPerYear() {
+        List<AbRequestCosts> abRequestCosts = this.abRequestCostsRepository.findAll();
+        List<YearlyCost> yearlyCostList = getYearlyCostList(abRequestCosts);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(yearlyCostList));
     }
 
