@@ -3,7 +3,7 @@
 <configuration scan="true">
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
-    <logger name="com.infostudio.ba" level="INFO"/>
+    <logger name="ba.infostudio.com" level="INFO"/>
 
     <logger name="io.github.jhipster" level="WARN"/>
 
