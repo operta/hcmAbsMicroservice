@@ -50,17 +50,21 @@ public class AbRequestsResource {
 
     private AbRequestStatusesRepository abRequestStatusesRepository;
 
+    private AbRequestReportsRepository abRequestReportsRepository;
+
     public AbRequestsResource(AbRequestsRepository abRequestsRepository, AbRequestsMapper abRequestsMapper,
                               AbVacationLeaveDaysRepository abVacationLeaveDaysRepository,
                               AbStatusesRepository abStatusesRepository,
                               AbRequestCostsRepository abRequestsCostsRepository,
-                              AbRequestStatusesRepository abRequestStatusesRepository) {
+                              AbRequestStatusesRepository abRequestStatusesRepository,
+                              AbRequestReportsRepository abRequestReportsRepository) {
         this.abRequestsRepository = abRequestsRepository;
         this.abRequestsMapper = abRequestsMapper;
         this.abVacationLeaveDaysRepository = abVacationLeaveDaysRepository;
         this.abStatusesRepository = abStatusesRepository;
         this.abRequestsCostsRepository = abRequestsCostsRepository;
         this.abRequestStatusesRepository = abRequestStatusesRepository;
+        this.abRequestReportsRepository = abRequestReportsRepository;
     }
 
     /**
@@ -323,6 +327,7 @@ public class AbRequestsResource {
     public ResponseEntity<Void> deleteAbRequests(@PathVariable Long id) {
         log.debug("REST request to delete AbRequests : {}", id);
         AbRequests abRequests = this.abRequestsRepository.findOne(id);
+        abRequestReportsRepository.deleteAllByIdRequestId(id);
         abRequestStatusesRepository.deleteAllByIdRequestId(id);
         abRequestsCostsRepository.deleteAllByIdRequestId(id);
         abRequestsRepository.updateAllAbRequestsWithNoOfDays(abRequests.getNoOfDaysLeft() + abRequests.getNoOfDays(),
