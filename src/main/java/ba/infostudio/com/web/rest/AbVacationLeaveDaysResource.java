@@ -1,5 +1,7 @@
 package ba.infostudio.com.web.rest;
 
+import ba.infostudio.com.domain.AbRequests;
+import ba.infostudio.com.repository.AbRequestsRepository;
 import com.codahale.metrics.annotation.Timed;
 import ba.infostudio.com.domain.AbVacationLeaveDays;
 
@@ -36,9 +38,14 @@ public class AbVacationLeaveDaysResource {
 
     private final AbVacationLeaveDaysMapper abVacationLeaveDaysMapper;
 
-    public AbVacationLeaveDaysResource(AbVacationLeaveDaysRepository abVacationLeaveDaysRepository, AbVacationLeaveDaysMapper abVacationLeaveDaysMapper) {
+    private final AbRequestsRepository abRequestsRepository;
+
+    public AbVacationLeaveDaysResource(AbVacationLeaveDaysRepository abVacationLeaveDaysRepository,
+                                       AbVacationLeaveDaysMapper abVacationLeaveDaysMapper,
+                                       AbRequestsRepository abRequestsRepository) {
         this.abVacationLeaveDaysRepository = abVacationLeaveDaysRepository;
         this.abVacationLeaveDaysMapper = abVacationLeaveDaysMapper;
+        this.abRequestsRepository = abRequestsRepository;
     }
 
     /**
@@ -79,12 +86,44 @@ public class AbVacationLeaveDaysResource {
         if (abVacationLeaveDaysDTO.getId() == null) {
             return createAbVacationLeaveDays(abVacationLeaveDaysDTO);
         }
-        AbVacationLeaveDays abVacationLeaveDays = abVacationLeaveDaysMapper.toEntity(abVacationLeaveDaysDTO);
-        abVacationLeaveDays = abVacationLeaveDaysRepository.save(abVacationLeaveDays);
-        AbVacationLeaveDaysDTO result = abVacationLeaveDaysMapper.toDto(abVacationLeaveDays);
+        if (abVacationLeaveDaysDTO.getNumberOfDays() < 0){
+            throw new BadRequestAlertException("Cannot set number of days to a negative value", ENTITY_NAME, "negativeDays");
+        }
+        AbVacationLeaveDays beforeUpdateAbVacationLeaveDays = abVacationLeaveDaysRepository
+            .findOne(abVacationLeaveDaysDTO.getId());
+
+        AbVacationLeaveDays afterUpdateAbVacationLeaveDays = abVacationLeaveDaysMapper.toEntity(abVacationLeaveDaysDTO);
+        afterUpdateAbVacationLeaveDays = abVacationLeaveDaysRepository.save(afterUpdateAbVacationLeaveDays);
+
+        updateAbRequestsWithNewVacLeaveDay(afterUpdateAbVacationLeaveDays);
+
+        AbVacationLeaveDaysDTO result = abVacationLeaveDaysMapper.toDto(afterUpdateAbVacationLeaveDays);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, abVacationLeaveDaysDTO.getId().toString()))
             .body(result);
+    }
+
+    private void updateAbRequestsWithNewVacLeaveDay(AbVacationLeaveDays afterUpdateAbVacationLeaveDays) {
+        int numOfLeaveDaysLeft = afterUpdateAbVacationLeaveDays.getNumberOfDays();
+
+
+        long employeeId = afterUpdateAbVacationLeaveDays.getIdEmployee().getId();
+        int vacationYear = afterUpdateAbVacationLeaveDays.getYear();
+
+        List<AbRequests> abRequestsToUpdate = abRequestsRepository.findByIdEmployeeIdAndYear(employeeId, vacationYear);
+
+        for (AbRequests req : abRequestsToUpdate) {
+            numOfLeaveDaysLeft -= req.getNoOfDays();
+        }
+
+        // If there does not exist any abRequests then do not do anything
+        if (abRequestsToUpdate.isEmpty()){
+           return ;
+        }
+
+        numOfLeaveDaysLeft = numOfLeaveDaysLeft < 0 ? 0 : numOfLeaveDaysLeft;
+
+        abRequestsRepository.updateAllAbRequestsWithNoOfDays(numOfLeaveDaysLeft, employeeId, vacationYear);
     }
 
     /**
@@ -98,7 +137,7 @@ public class AbVacationLeaveDaysResource {
         log.debug("REST request to get all AbVacationLeaveDays");
         List<AbVacationLeaveDays> abVacationLeaveDays = abVacationLeaveDaysRepository.findAll();
         return abVacationLeaveDaysMapper.toDto(abVacationLeaveDays);
-        }
+    }
 
     /**
      * GET  /ab-vacation-leave-days/:id : get the "id" abVacationLeaveDays.
