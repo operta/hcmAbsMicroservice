@@ -87,30 +87,67 @@ public class AbRequestsResource {
                 throw new BadRequestAlertException("A new abRequests cannot immediatelly be rejected", ENTITY_NAME, "abstatus_rejected");
             }
         }
-        abRequestsDTO.setYear(LocalDate.now().getYear());
-        AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
-        List<AbRequests> allAbRequestsForEmp = this.abRequestsRepository
-            .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(),
-                abRequests.getYear());
-        if(allAbRequestsForEmp == null || allAbRequestsForEmp.size() == 0){
-            AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
-                .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(), abRequests.getYear());
-            abRequests.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays());
-        }else{
-            AbRequests lastRequest = allAbRequestsForEmp.stream()
-                .max(Comparator.comparing(AbRequests::getupdatedAt))
-                .orElse(null);
-            abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft() - abRequests.getNoOfDays());
-        }
+
+        int currentYear = LocalDate.now().getYear();
+        abRequestsDTO.setYear(currentYear);
+
+        AbRequests abRequests = calculateNumOfDaysLeftOnPost(abRequestsDTO);
+
+        // ensures that we always have the most up to date value in the 'noOfDaysLeft' attribute
         abRequestsRepository.updateAllAbRequestsWithNoOfDays(abRequests.getNoOfDaysLeft(),
                                                              abRequestsDTO.getIdEmployeeId(),
                                                              abRequests.getYear());
 
         abRequests = abRequestsRepository.save(abRequests);
+
+        createAbRequestStatus(abRequests);
+
         AbRequestsDTO result = abRequestsMapper.toDto(abRequests);
         return ResponseEntity.created(new URI("/api/ab-requests/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
+    }
+
+    private AbRequests calculateNumOfDaysLeftOnPost(AbRequestsDTO abRequestsDTO) {
+        AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
+
+        List<AbRequests> allAbRequestsForEmp = this.abRequestsRepository
+            .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(),
+                abRequests.getYear());
+
+
+        if(allAbRequestsForEmp == null || allAbRequestsForEmp.size() == 0){
+
+            abRequests.setNoOfDaysLeft(getNumOfDaysLeftWhenNoAbRequestsExist(abRequests));
+
+        }else{
+
+            AbRequests lastRequest = allAbRequestsForEmp.stream()
+                .max(Comparator.comparing(AbRequests::getupdatedAt))
+                .orElse(null);
+            abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft() - abRequests.getNoOfDays());
+        }
+
+        return abRequests;
+    }
+
+    private Integer getNumOfDaysLeftWhenNoAbRequestsExist(AbRequests abRequests) {
+
+        AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
+                                                 .findByIdEmployeeIdAndYear(abRequests.getIdEmployee().getId(),
+                                                                            abRequests.getYear());
+
+        return abVacationLeaveDays.getNumberOfDays();
+    }
+
+    private void createAbRequestStatus(AbRequests abRequests) {
+        AbRequestStatuses abRequestStatuses = new AbRequestStatuses();
+
+        abRequestStatuses.setIdRequest(abRequests);
+        abRequestStatuses.setIdStatus(abRequests.getIdStatus());
+        abRequestStatuses.setDateFrom(abRequests.getDateFrom());
+
+        abRequestStatusesRepository.save(abRequestStatuses);
     }
 
     /**
@@ -130,28 +167,47 @@ public class AbRequestsResource {
             return createAbRequests(abRequestsDTO);
         }
 
-        AbRequests oldAbRequest = abRequestsRepository.findOne(abRequestsDTO.getId());
-        AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
-        abRequests.setNoOfDaysLeft(oldAbRequest.getNoOfDaysLeft());
-        abRequests.setYear(oldAbRequest.getYear());
+        AbRequests abRequests = changeNumOfDaysLeftIfStatusChanged(abRequestsDTO);
 
-        AbStatuses abStatuses = abStatusesRepository.findOne(abRequestsDTO.getIdStatusId());
-        if(!oldAbRequest.getIdStatus().getId().equals(abRequestsDTO.getIdStatusId())){
-            if(abStatuses.getName().equals("Rejected")) {
-                abRequests.setNoOfDaysLeft(oldAbRequest.getNoOfDaysLeft() + oldAbRequest.getNoOfDays());
-            }
-            else if(oldAbRequest.getIdStatus().getName().equals("Rejected") && !abStatuses.getName().equals("Rejected")){
-                abRequests.setNoOfDaysLeft(oldAbRequest.getNoOfDaysLeft() - oldAbRequest.getNoOfDays());
-            }
-        }
+
         abRequestsRepository.updateAllAbRequestsWithNoOfDays(abRequests.getNoOfDaysLeft(),
                                                              abRequestsDTO.getIdEmployeeId(),
                                                              abRequests.getYear());
+
         abRequests = abRequestsRepository.save(abRequests);
         AbRequestsDTO result = abRequestsMapper.toDto(abRequests);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, abRequestsDTO.getId().toString()))
             .body(result);
+    }
+
+    private AbRequests changeNumOfDaysLeftIfStatusChanged(AbRequestsDTO abRequestsDTO) {
+        AbRequests beforeUpdateAbRequest = abRequestsRepository.findOne(abRequestsDTO.getId());
+        AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
+
+        abRequests.setNoOfDaysLeft(beforeUpdateAbRequest.getNoOfDaysLeft());
+        abRequests.setYear(beforeUpdateAbRequest.getYear());
+
+        AbStatuses afterUpdateAbStatus = abStatusesRepository.findOne(abRequests.getIdStatus().getId());
+
+        boolean areOldAndNewStatusEqual = beforeUpdateAbRequest.getIdStatus().getId().equals(abRequests.getIdStatus().getId());
+
+        if(!areOldAndNewStatusEqual){
+            if(afterUpdateAbStatus.getName().equals("Rejected")) {
+
+                abRequests.setNoOfDaysLeft(abRequests.getNoOfDaysLeft() + beforeUpdateAbRequest.getNoOfDays());
+
+            } else if(beforeUpdateAbRequest.getIdStatus().getName().equals("Rejected") &&
+                !afterUpdateAbStatus.getName().equals("Rejected")){
+
+                int notRejectedDaysLeft = beforeUpdateAbRequest.getNoOfDaysLeft() - beforeUpdateAbRequest.getNoOfDays();
+
+                abRequests.setNoOfDaysLeft(notRejectedDaysLeft);
+
+            }
+        }
+
+        return abRequests;
     }
 
     /**
@@ -269,18 +325,27 @@ public class AbRequestsResource {
     @Timed
     public ResponseEntity<AbRequestsDTO> getNumberOfDaysLeftByEmpId(@PathVariable Long employeeId) {
         log.debug("REST request to get AbRequests : {}", employeeId);
+
         List<AbRequests> abRequests = abRequestsRepository.findByIdEmployeeIdAndYear(employeeId, LocalDate.now().getYear());
+
         AbRequests lastRequest;
+
         if(abRequests.size() > 0) {
              lastRequest = abRequests.stream()
                 .max(Comparator.comparing(AbRequests::getupdatedAt))
                 .orElse(null);
         }else{
             lastRequest = new AbRequests();
+            lastRequest.setNoOfDaysLeft(0);
+            lastRequest.setNoOfDays(0);
+
             AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
                 .findByIdEmployeeIdAndYear(employeeId, LocalDate.now().getYear());
-            lastRequest.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays());
-            lastRequest.setNoOfDays(0);
+
+            if(abVacationLeaveDays != null) {
+                lastRequest.setNoOfDaysLeft(abVacationLeaveDays.getNumberOfDays());
+                lastRequest.setNoOfDays(0);
+            }
         }
         AbRequestsDTO abRequestsDTO = abRequestsMapper.toDto(lastRequest);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestsDTO));
