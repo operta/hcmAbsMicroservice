@@ -10,6 +10,7 @@ import ba.infostudio.com.web.rest.util.PaginationUtil;
 import ba.infostudio.com.service.dto.AbRequestsDTO;
 import ba.infostudio.com.service.mapper.AbRequestsMapper;
 import io.github.jhipster.web.util.ResponseUtil;
+import org.apache.commons.lang.NullArgumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -87,6 +88,9 @@ public class AbRequestsResource {
                 throw new BadRequestAlertException("A new abRequests cannot immediatelly be rejected", ENTITY_NAME, "abstatus_rejected");
             }
         }
+        if (abRequestsDTO.getNoOfDays() < 0){
+            throw new BadRequestAlertException("A new abRequest cannot have negative no of days", ENTITY_NAME, "negativedays");
+        }
 
         int currentYear = LocalDate.now().getYear();
         abRequestsDTO.setYear(currentYear);
@@ -115,29 +119,47 @@ public class AbRequestsResource {
             .findByIdEmployeeIdAndYear(abRequestsDTO.getIdEmployeeId(),
                 abRequests.getYear());
 
+        final String NO_OF_DAYS_ERR_MSG = "No of days cannot be bigger than the days left";
+        final String ERROR_KEY = "daystoobig";
 
         if(allAbRequestsForEmp == null || allAbRequestsForEmp.size() == 0){
 
-            abRequests.setNoOfDaysLeft(getNumOfDaysLeftWhenNoAbRequestsExist(abRequests));
+            abRequests.setNoOfDaysLeft(getNumOfDaysLeftWhenNoAbRequestsExist(abRequests, NO_OF_DAYS_ERR_MSG, ERROR_KEY));
 
         }else{
 
             AbRequests lastRequest = allAbRequestsForEmp.stream()
                 .max(Comparator.comparing(AbRequests::getupdatedAt))
                 .orElse(null);
+
+            if(lastRequest.getNoOfDaysLeft() < abRequests.getNoOfDays()){
+                throw new BadRequestAlertException(NO_OF_DAYS_ERR_MSG, ENTITY_NAME, ERROR_KEY);
+            }
+
             abRequests.setNoOfDaysLeft(lastRequest.getNoOfDaysLeft() - abRequests.getNoOfDays());
         }
 
         return abRequests;
     }
 
-    private Integer getNumOfDaysLeftWhenNoAbRequestsExist(AbRequests abRequests) {
+    private Integer getNumOfDaysLeftWhenNoAbRequestsExist(AbRequests abRequests,
+                                                          String errorMessage,
+                                                          String errorKey) throws BadRequestAlertException{
 
         AbVacationLeaveDays abVacationLeaveDays = this.abVacationLeaveDaysRepository
                                                  .findByIdEmployeeIdAndYear(abRequests.getIdEmployee().getId(),
                                                                             abRequests.getYear());
+        if(abVacationLeaveDays == null){
+            throw new BadRequestAlertException("Cannot create a new Ab Request without AbVacationLeaveDays",
+                ENTITY_NAME, "abvacationleavedays_exists");
+        }
 
-        return abVacationLeaveDays.getNumberOfDays();
+        if(abVacationLeaveDays.getNumberOfDays() < abRequests.getNoOfDays()){
+            throw new BadRequestAlertException(errorMessage, ENTITY_NAME,
+                errorKey);
+        }
+
+        return abVacationLeaveDays.getNumberOfDays() - abRequests.getNoOfDays();
     }
 
     private void createAbRequestStatus(AbRequests abRequests) {
