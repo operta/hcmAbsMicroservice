@@ -13,4 +13,5 @@ import org.springframework.data.jpa.repository.*;
 @Repository
 public interface AbStatusesRepository extends JpaRepository<AbStatuses, Long> {
 
+    AbStatuses findByName(String nameOfStatus);
 }

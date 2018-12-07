@@ -1,5 +1,10 @@
 package ba.infostudio.com.web.rest;
 
+import ba.infostudio.com.domain.AbPSChanges;
+import ba.infostudio.com.domain.AbRequests;
+import ba.infostudio.com.domain.AbStatuses;
+import ba.infostudio.com.repository.AbPSChangesRepository;
+import ba.infostudio.com.repository.AbStatusesRepository;
 import com.codahale.metrics.annotation.Timed;
 import ba.infostudio.com.domain.AbRequestStatuses;
 
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,11 +44,20 @@ public class AbRequestStatusesResource {
 
     private final AbRequestStatusesRepository abRequestStatusesRepository;
 
+    private final AbStatusesRepository abStatusesRepository;
+
     private final AbRequestStatusesMapper abRequestStatusesMapper;
 
-    public AbRequestStatusesResource(AbRequestStatusesRepository abRequestStatusesRepository, AbRequestStatusesMapper abRequestStatusesMapper) {
+    private final AbPSChangesRepository abPSChangesRepository;
+
+    public AbRequestStatusesResource(AbRequestStatusesRepository abRequestStatusesRepository,
+                                     AbRequestStatusesMapper abRequestStatusesMapper,
+                                     AbStatusesRepository abStatusesRepository,
+                                     AbPSChangesRepository abPSChangesRepository) {
         this.abRequestStatusesRepository = abRequestStatusesRepository;
         this.abRequestStatusesMapper = abRequestStatusesMapper;
+        this.abStatusesRepository = abStatusesRepository;
+        this.abPSChangesRepository = abPSChangesRepository;
     }
 
     /**
@@ -59,12 +74,73 @@ public class AbRequestStatusesResource {
         if (abRequestStatusesDTO.getId() != null) {
             throw new BadRequestAlertException("A new abRequestStatuses cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        checkIfStatusChangePermitted(abRequestStatusesDTO);
+
         AbRequestStatuses abRequestStatuses = abRequestStatusesMapper.toEntity(abRequestStatusesDTO);
         abRequestStatuses = abRequestStatusesRepository.save(abRequestStatuses);
+
+        String nameOfStatus = abStatusesRepository.findOne(abRequestStatuses.getIdStatus().getId()).getName();
+        if(nameOfStatus.equals("Calculated")){
+            addFinishedStatus(abRequestStatuses);
+        }
+
         AbRequestStatusesDTO result = abRequestStatusesMapper.toDto(abRequestStatuses);
         return ResponseEntity.created(new URI("/api/ab-request-statuses/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
+    }
+
+    private void checkIfStatusChangePermitted(AbRequestStatusesDTO abRequestStatusesDTO) {
+        List<AbPSChanges> abPSChanges = this.abPSChangesRepository.findAll();
+        if(abPSChanges.isEmpty()){
+            throw new BadRequestAlertException("You first have to update the AbPermittedStatusChanges Table",
+                ENTITY_NAME, "nopermittedstatuses");
+        }
+
+        AbStatuses toStatus = abStatusesRepository.findOne(abRequestStatusesDTO.getIdStatusId());
+
+        Long abRequestId = abRequestStatusesDTO.getIdRequestId();
+        AbRequestStatuses fromRequestStatus = abRequestStatusesRepository.findByIdRequestId(abRequestId)
+            .stream().max(Comparator.comparing(AbRequestStatuses::getcreatedAt)).get();
+
+        AbStatuses fromStatus = abStatusesRepository.findOne(fromRequestStatus.getIdStatus().getId());
+
+        boolean canChange = false;
+
+        // check if status change is permitted i.e. a record in the AbPSChanges entity exists with that status change
+        for (AbPSChanges permittedStatusChange : abPSChanges) {
+            String fromPermitted = permittedStatusChange.getIdStatusFrom().getName();
+            String toPermitted = permittedStatusChange.getIdStatusTo().getName();
+
+            if(fromStatus.getName().equals(fromPermitted) &&
+               toStatus.getName().equals(toPermitted)){
+                canChange = true;
+            }
+        }
+        if(!canChange){
+            String message = String.format("You cannot change the status from '%s' to '%s'", fromStatus.getName(),
+                toStatus.getName());
+            throw new BadRequestAlertException(message, ENTITY_NAME, "statuschangenotpermitted");
+        }
+
+    }
+
+    private void addFinishedStatus(AbRequestStatuses abRequestStatuses) {
+        AbRequestStatuses finishedAbRequestStatus = new AbRequestStatuses();
+
+        finishedAbRequestStatus.setDateFrom(abRequestStatuses.getDateFrom());
+
+        AbStatuses finishedStatus = this.abStatusesRepository.findByName("Finished");
+
+        if(finishedStatus == null){
+            log.error("There is no AbStatus with name 'Finished' in the Database");
+            return ;
+        }
+
+        finishedAbRequestStatus.setIdStatus(finishedStatus);
+        finishedAbRequestStatus.setIdRequest(abRequestStatuses.getIdRequest());
+
+        abRequestStatusesRepository.save(finishedAbRequestStatus);
     }
 
     /**
