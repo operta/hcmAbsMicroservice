@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.method.P;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -316,14 +317,17 @@ public class AbRequestsResource {
     public ResponseEntity<List<AbRequestsDTO>> getAbRequestsBySearchParams(
         @RequestParam(value = "date", required = false) LocalDate date)
     {
-        List<AbRequests> list  = abRequestsRepository.findByDateFromLessThanEqualAndDateToGreaterThanEqual(date, date);
-
-        List<AbRequestsDTO> requests = new ArrayList<AbRequestsDTO>();
-        for(int i = 0; i < list.size(); i++) {
-            AbRequestsDTO item = abRequestsMapper.toDto(list.get(i));
-            requests.add(item);
+        if(date != null) {
+            List<AbRequests> list  = abRequestsRepository.findByDateFromLessThanEqualAndDateToGreaterThanEqual(date, date);
+            List<AbRequestsDTO> requests = new ArrayList<AbRequestsDTO>();
+            for(int i = 0; i < list.size(); i++) {
+                AbRequestsDTO item = abRequestsMapper.toDto(list.get(i));
+                requests.add(item);
+            }
+            return new ResponseEntity<>(requests, null, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(null, null, HttpStatus.OK);
         }
-        return new ResponseEntity<>(requests, null, HttpStatus.OK);
     }
 
 
