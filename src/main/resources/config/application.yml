@@ -50,8 +50,19 @@ feign:
     hystrix:
         enabled: true
 
+zuul:
+    host:
+        connect-timeout-millis: 5000
+        socket-timeout-millis: 10000
+
 hystrix:
     share-security-context: true
+    command:
+        default:
+            execution:
+                isolation:
+                    thread:
+                        timeoutInMilliseconds: 10000
 
 management:
     security:

@@ -2,6 +2,8 @@ package ba.infostudio.com.web.rest;
 
 import ba.infostudio.com.domain.*;
 import ba.infostudio.com.repository.*;
+import ba.infostudio.com.service.proxy.CoreMicroserviceProxy;
+import ba.infostudio.com.service.proxy.model.ApConstants;
 import com.codahale.metrics.annotation.Timed;
 
 import ba.infostudio.com.web.rest.errors.BadRequestAlertException;
@@ -10,6 +12,7 @@ import ba.infostudio.com.web.rest.util.PaginationUtil;
 import ba.infostudio.com.service.dto.AbRequestsDTO;
 import ba.infostudio.com.service.mapper.AbRequestsMapper;
 import io.github.jhipster.web.util.ResponseUtil;
+import io.swagger.annotations.Authorization;
 import org.apache.commons.lang.NullArgumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,18 +51,21 @@ public class AbRequestsResource {
 
     private final AbRequestsMapper abRequestsMapper;
 
-    private AbRequestCostsRepository abRequestsCostsRepository;
+    private final AbRequestCostsRepository abRequestsCostsRepository;
 
-    private AbRequestStatusesRepository abRequestStatusesRepository;
+    private final AbRequestStatusesRepository abRequestStatusesRepository;
 
-    private AbRequestReportsRepository abRequestReportsRepository;
+    private final AbRequestReportsRepository abRequestReportsRepository;
+
+    private final CoreMicroserviceProxy coreMicroserviceProxy;
 
     public AbRequestsResource(AbRequestsRepository abRequestsRepository, AbRequestsMapper abRequestsMapper,
                               AbVacationLeaveDaysRepository abVacationLeaveDaysRepository,
                               AbStatusesRepository abStatusesRepository,
                               AbRequestCostsRepository abRequestsCostsRepository,
                               AbRequestStatusesRepository abRequestStatusesRepository,
-                              AbRequestReportsRepository abRequestReportsRepository) {
+                              AbRequestReportsRepository abRequestReportsRepository,
+                              CoreMicroserviceProxy coreMicroserviceProxy) {
         this.abRequestsRepository = abRequestsRepository;
         this.abRequestsMapper = abRequestsMapper;
         this.abVacationLeaveDaysRepository = abVacationLeaveDaysRepository;
@@ -67,6 +73,7 @@ public class AbRequestsResource {
         this.abRequestsCostsRepository = abRequestsCostsRepository;
         this.abRequestStatusesRepository = abRequestStatusesRepository;
         this.abRequestReportsRepository = abRequestReportsRepository;
+        this.coreMicroserviceProxy = coreMicroserviceProxy;
     }
 
     /**
@@ -184,13 +191,14 @@ public class AbRequestsResource {
      */
     @PutMapping("/ab-requests")
     @Timed
-    public ResponseEntity<AbRequestsDTO> updateAbRequests(@Valid @RequestBody AbRequestsDTO abRequestsDTO) throws URISyntaxException {
+    public ResponseEntity<AbRequestsDTO> updateAbRequests(@Valid @RequestBody AbRequestsDTO abRequestsDTO,
+                                                          @RequestHeader("Authorization") String token) throws URISyntaxException {
         log.debug("REST request to update AbRequests : {}", abRequestsDTO);
         if (abRequestsDTO.getId() == null) {
             return createAbRequests(abRequestsDTO);
         }
 
-        AbRequests abRequests = changeNumOfDaysLeftIfStatusChanged(abRequestsDTO);
+        AbRequests abRequests = changeNumOfDaysLeftIfStatusChanged(abRequestsDTO, token);
 
 
         abRequestsRepository.updateAllAbRequestsWithNoOfDays(abRequests.getNoOfDaysLeft(),
@@ -204,7 +212,7 @@ public class AbRequestsResource {
             .body(result);
     }
 
-    private AbRequests changeNumOfDaysLeftIfStatusChanged(AbRequestsDTO abRequestsDTO) {
+    private AbRequests changeNumOfDaysLeftIfStatusChanged(AbRequestsDTO abRequestsDTO, String token) {
         AbRequests beforeUpdateAbRequest = abRequestsRepository.findOne(abRequestsDTO.getId());
         AbRequests abRequests = abRequestsMapper.toEntity(abRequestsDTO);
 
@@ -213,15 +221,22 @@ public class AbRequestsResource {
 
         AbStatuses afterUpdateAbStatus = abStatusesRepository.findOne(abRequests.getIdStatus().getId());
 
+        ApConstants rejectedConstant = coreMicroserviceProxy.getApConstantByKey("abStatusRejected", token).getBody();
+
+        if(rejectedConstant == null){
+            throw new BadRequestAlertException("Could not get Rejected constant", ENTITY_NAME,
+                "noconstant");
+        }
+
         boolean areOldAndNewStatusEqual = beforeUpdateAbRequest.getIdStatus().getId().equals(abRequests.getIdStatus().getId());
 
         if(!areOldAndNewStatusEqual){
-            if(afterUpdateAbStatus.getName().equals("Rejected")) {
-
+            Long idOfRejectedStatus = Long.valueOf(rejectedConstant.getValue());
+            if(afterUpdateAbStatus.getId().equals(idOfRejectedStatus)) {
                 abRequests.setNoOfDaysLeft(abRequests.getNoOfDaysLeft() + beforeUpdateAbRequest.getNoOfDays());
 
-            } else if(beforeUpdateAbRequest.getIdStatus().getName().equals("Rejected") &&
-                !afterUpdateAbStatus.getName().equals("Rejected")){
+            } else if(beforeUpdateAbRequest.getIdStatus().getId().equals(idOfRejectedStatus) &&
+                !afterUpdateAbStatus.getId().equals(idOfRejectedStatus)){
 
                 int notRejectedDaysLeft = beforeUpdateAbRequest.getNoOfDaysLeft() - beforeUpdateAbRequest.getNoOfDays();
 
