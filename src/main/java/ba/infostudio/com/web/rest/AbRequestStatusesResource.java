@@ -2,6 +2,7 @@ package ba.infostudio.com.web.rest;
 
 import ba.infostudio.com.domain.*;
 import ba.infostudio.com.repository.AbPSChangesRepository;
+import ba.infostudio.com.repository.AbRequestsRepository;
 import ba.infostudio.com.repository.AbStatusesRepository;
 import ba.infostudio.com.web.rest.util.AuditUtil;
 import com.codahale.metrics.annotation.Timed;
@@ -51,16 +52,20 @@ public class AbRequestStatusesResource {
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    private final AbRequestsRepository abRequestsRepository;
+
     public AbRequestStatusesResource(AbRequestStatusesRepository abRequestStatusesRepository,
                                      AbRequestStatusesMapper abRequestStatusesMapper,
                                      AbStatusesRepository abStatusesRepository,
                                      AbPSChangesRepository abPSChangesRepository,
-                                     ApplicationEventPublisher applicationEventPublisher) {
+                                     ApplicationEventPublisher applicationEventPublisher,
+                                     AbRequestsRepository abRequestsRepository) {
         this.abRequestStatusesRepository = abRequestStatusesRepository;
         this.abRequestStatusesMapper = abRequestStatusesMapper;
         this.abStatusesRepository = abStatusesRepository;
         this.abPSChangesRepository = abPSChangesRepository;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.abRequestsRepository = abRequestsRepository;
     }
 
     /**
@@ -98,9 +103,11 @@ public class AbRequestStatusesResource {
                 Action.POST
             )
         );
+        log.debug("SAVED STATUSES : {}", abRequestStatuses.getIdRequest());
+        AbRequests abRequests = abRequestsRepository.findOne(abRequestStatuses.getIdRequest().getId());
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                abRequestStatuses.getIdRequest().getIdEmployee().getId().toString(),
+                abRequests.getIdEmployee().getId().toString(),
                 "employee",
                 ENTITY_NAME,
                 result.getId().toString(),
@@ -193,9 +200,10 @@ public class AbRequestStatusesResource {
                 Action.PUT
             )
         );
+        AbRequests abRequests = abRequestsRepository.findOne(abRequestStatuses.getIdRequest().getId());
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                abRequestStatuses.getIdRequest().getIdEmployee().getId().toString(),
+                abRequests.getIdEmployee().getId().toString(),
                 "employee",
                 ENTITY_NAME,
                 result.getId().toString(),
@@ -273,9 +281,10 @@ public class AbRequestStatusesResource {
                 Action.DELETE
             )
         );
+        AbRequests abRequests = abRequestsRepository.findOne(abRequestStatuses.getIdRequest().getId());
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                abRequestStatuses.getIdRequest().getIdEmployee().getId().toString(),
+                abRequests.getIdEmployee().getId().toString(),
                 "employee",
                 ENTITY_NAME,
                 id.toString(),
