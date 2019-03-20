@@ -1,5 +1,7 @@
 package ba.infostudio.com.web.rest;
 
+import ba.infostudio.com.domain.Action;
+import ba.infostudio.com.web.rest.util.AuditUtil;
 import com.codahale.metrics.annotation.Timed;
 import ba.infostudio.com.domain.AbRequestReports;
 
@@ -12,6 +14,7 @@ import ba.infostudio.com.service.mapper.AbRequestReportsMapper;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -40,9 +43,14 @@ public class AbRequestReportsResource {
 
     private final AbRequestReportsMapper abRequestReportsMapper;
 
-    public AbRequestReportsResource(AbRequestReportsRepository abRequestReportsRepository, AbRequestReportsMapper abRequestReportsMapper) {
+    private final ApplicationEventPublisher applicationEventPublisher;
+
+    public AbRequestReportsResource(AbRequestReportsRepository abRequestReportsRepository,
+                                    AbRequestReportsMapper abRequestReportsMapper,
+                                    ApplicationEventPublisher applicationEventPublisher) {
         this.abRequestReportsRepository = abRequestReportsRepository;
         this.abRequestReportsMapper = abRequestReportsMapper;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     /**
@@ -62,6 +70,24 @@ public class AbRequestReportsResource {
         AbRequestReports abRequestReports = abRequestReportsMapper.toEntity(abRequestReportsDTO);
         abRequestReports = abRequestReportsRepository.save(abRequestReports);
         AbRequestReportsDTO result = abRequestReportsMapper.toDto(abRequestReports);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                result.getCreatedBy(),
+                "absence",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.POST
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abRequestReports.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.POST
+            )
+        );
         return ResponseEntity.created(new URI("/api/ab-request-reports/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -86,6 +112,24 @@ public class AbRequestReportsResource {
         AbRequestReports abRequestReports = abRequestReportsMapper.toEntity(abRequestReportsDTO);
         abRequestReports = abRequestReportsRepository.save(abRequestReports);
         AbRequestReportsDTO result = abRequestReportsMapper.toDto(abRequestReports);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                result.getUpdatedBy(),
+                "absence",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.PUT
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abRequestReports.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.PUT
+            )
+        );
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, abRequestReportsDTO.getId().toString()))
             .body(result);
@@ -144,7 +188,27 @@ public class AbRequestReportsResource {
     @Timed
     public ResponseEntity<Void> deleteAbRequestReports(@PathVariable Long id) {
         log.debug("REST request to delete AbRequestReports : {}", id);
+        AbRequestReports report = abRequestReportsRepository.findOne(id);
+        AbRequestReportsDTO reportsDTO = abRequestReportsMapper.toDto(report);
         abRequestReportsRepository.delete(id);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                reportsDTO.getUpdatedBy(),
+                "absence",
+                ENTITY_NAME,
+                id.toString(),
+                Action.DELETE
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                report.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                id.toString(),
+                Action.DELETE
+            )
+        );
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 }

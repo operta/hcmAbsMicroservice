@@ -1,12 +1,10 @@
 package ba.infostudio.com.web.rest;
 
-import ba.infostudio.com.domain.AbPSChanges;
-import ba.infostudio.com.domain.AbRequests;
-import ba.infostudio.com.domain.AbStatuses;
+import ba.infostudio.com.domain.*;
 import ba.infostudio.com.repository.AbPSChangesRepository;
 import ba.infostudio.com.repository.AbStatusesRepository;
+import ba.infostudio.com.web.rest.util.AuditUtil;
 import com.codahale.metrics.annotation.Timed;
-import ba.infostudio.com.domain.AbRequestStatuses;
 
 import ba.infostudio.com.repository.AbRequestStatusesRepository;
 import ba.infostudio.com.web.rest.errors.BadRequestAlertException;
@@ -17,6 +15,7 @@ import ba.infostudio.com.service.mapper.AbRequestStatusesMapper;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -50,14 +49,18 @@ public class AbRequestStatusesResource {
 
     private final AbPSChangesRepository abPSChangesRepository;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     public AbRequestStatusesResource(AbRequestStatusesRepository abRequestStatusesRepository,
                                      AbRequestStatusesMapper abRequestStatusesMapper,
                                      AbStatusesRepository abStatusesRepository,
-                                     AbPSChangesRepository abPSChangesRepository) {
+                                     AbPSChangesRepository abPSChangesRepository,
+                                     ApplicationEventPublisher applicationEventPublisher) {
         this.abRequestStatusesRepository = abRequestStatusesRepository;
         this.abRequestStatusesMapper = abRequestStatusesMapper;
         this.abStatusesRepository = abStatusesRepository;
         this.abPSChangesRepository = abPSChangesRepository;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     /**
@@ -85,6 +88,25 @@ public class AbRequestStatusesResource {
         }
 
         AbRequestStatusesDTO result = abRequestStatusesMapper.toDto(abRequestStatuses);
+
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                result.getCreatedBy(),
+                "absence",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.POST
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abRequestStatuses.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.POST
+            )
+        );
         return ResponseEntity.created(new URI("/api/ab-request-statuses/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -162,6 +184,24 @@ public class AbRequestStatusesResource {
         AbRequestStatuses abRequestStatuses = abRequestStatusesMapper.toEntity(abRequestStatusesDTO);
         abRequestStatuses = abRequestStatusesRepository.save(abRequestStatuses);
         AbRequestStatusesDTO result = abRequestStatusesMapper.toDto(abRequestStatuses);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                result.getUpdatedBy(),
+                "absence",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.PUT
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abRequestStatuses.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.PUT
+            )
+        );
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, abRequestStatusesDTO.getId().toString()))
             .body(result);
@@ -221,7 +261,27 @@ public class AbRequestStatusesResource {
     @Timed
     public ResponseEntity<Void> deleteAbRequestStatuses(@PathVariable Long id) {
         log.debug("REST request to delete AbRequestStatuses : {}", id);
+        AbRequestStatuses abRequestStatuses = abRequestStatusesRepository.findOne(id);
+        AbRequestStatusesDTO abRequestStatusesDTO = abRequestStatusesMapper.toDto(abRequestStatuses);
         abRequestStatusesRepository.delete(id);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abRequestStatusesDTO.getUpdatedBy(),
+                "absence",
+                ENTITY_NAME,
+                id.toString(),
+                Action.DELETE
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abRequestStatuses.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                id.toString(),
+                Action.DELETE
+            )
+        );
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 }

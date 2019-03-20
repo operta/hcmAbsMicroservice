@@ -1,7 +1,9 @@
 package ba.infostudio.com.web.rest;
 
 import ba.infostudio.com.domain.AbRequests;
+import ba.infostudio.com.domain.Action;
 import ba.infostudio.com.repository.AbRequestsRepository;
+import ba.infostudio.com.web.rest.util.AuditUtil;
 import com.codahale.metrics.annotation.Timed;
 import ba.infostudio.com.domain.AbVacationLeaveDays;
 
@@ -13,6 +15,7 @@ import ba.infostudio.com.service.mapper.AbVacationLeaveDaysMapper;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,12 +43,16 @@ public class AbVacationLeaveDaysResource {
 
     private final AbRequestsRepository abRequestsRepository;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     public AbVacationLeaveDaysResource(AbVacationLeaveDaysRepository abVacationLeaveDaysRepository,
                                        AbVacationLeaveDaysMapper abVacationLeaveDaysMapper,
-                                       AbRequestsRepository abRequestsRepository) {
+                                       AbRequestsRepository abRequestsRepository,
+                                       ApplicationEventPublisher applicationEventPublisher) {
         this.abVacationLeaveDaysRepository = abVacationLeaveDaysRepository;
         this.abVacationLeaveDaysMapper = abVacationLeaveDaysMapper;
         this.abRequestsRepository = abRequestsRepository;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     /**
@@ -65,6 +72,24 @@ public class AbVacationLeaveDaysResource {
         AbVacationLeaveDays abVacationLeaveDays = abVacationLeaveDaysMapper.toEntity(abVacationLeaveDaysDTO);
         abVacationLeaveDays = abVacationLeaveDaysRepository.save(abVacationLeaveDays);
         AbVacationLeaveDaysDTO result = abVacationLeaveDaysMapper.toDto(abVacationLeaveDays);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                result.getCreatedBy(),
+                "absence",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.POST
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abVacationLeaveDays.getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.POST
+            )
+        );
         return ResponseEntity.created(new URI("/api/ab-vacation-leave-days/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -98,6 +123,25 @@ public class AbVacationLeaveDaysResource {
         updateAbRequestsWithNewVacLeaveDay(afterUpdateAbVacationLeaveDays);
 
         AbVacationLeaveDaysDTO result = abVacationLeaveDaysMapper.toDto(afterUpdateAbVacationLeaveDays);
+
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                result.getUpdatedBy(),
+                "absence",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.PUT
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                afterUpdateAbVacationLeaveDays.getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.PUT
+            )
+        );
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, abVacationLeaveDaysDTO.getId().toString()))
             .body(result);
@@ -196,7 +240,27 @@ public class AbVacationLeaveDaysResource {
     @Timed
     public ResponseEntity<Void> deleteAbVacationLeaveDays(@PathVariable Long id) {
         log.debug("REST request to delete AbVacationLeaveDays : {}", id);
+        AbVacationLeaveDays abVacationLeaveDays = abVacationLeaveDaysRepository.findOne(id);
+        AbVacationLeaveDaysDTO abVacationLeaveDaysDTO = abVacationLeaveDaysMapper.toDto(abVacationLeaveDays);
         abVacationLeaveDaysRepository.delete(id);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abVacationLeaveDaysDTO.getUpdatedBy(),
+                "absence",
+                ENTITY_NAME,
+                id.toString(),
+                Action.DELETE
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abVacationLeaveDays.getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                id.toString(),
+                Action.DELETE
+            )
+        );
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 }

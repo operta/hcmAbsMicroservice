@@ -1,5 +1,7 @@
 package ba.infostudio.com.web.rest;
 
+import ba.infostudio.com.domain.Action;
+import ba.infostudio.com.web.rest.util.AuditUtil;
 import com.codahale.metrics.annotation.Timed;
 import ba.infostudio.com.domain.AbRequestCosts;
 
@@ -12,6 +14,7 @@ import ba.infostudio.com.service.mapper.AbRequestCostsMapper;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -42,9 +45,14 @@ public class AbRequestCostsResource {
 
     private final AbRequestCostsMapper abRequestCostsMapper;
 
-    public AbRequestCostsResource(AbRequestCostsRepository abRequestCostsRepository, AbRequestCostsMapper abRequestCostsMapper) {
+    private final ApplicationEventPublisher applicationEventPublisher;
+
+    public AbRequestCostsResource(AbRequestCostsRepository abRequestCostsRepository,
+                                  AbRequestCostsMapper abRequestCostsMapper,
+                                  ApplicationEventPublisher applicationEventPublisher) {
         this.abRequestCostsRepository = abRequestCostsRepository;
         this.abRequestCostsMapper = abRequestCostsMapper;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     /**
@@ -64,6 +72,24 @@ public class AbRequestCostsResource {
         AbRequestCosts abRequestCosts = abRequestCostsMapper.toEntity(abRequestCostsDTO);
         abRequestCosts = abRequestCostsRepository.save(abRequestCosts);
         AbRequestCostsDTO result = abRequestCostsMapper.toDto(abRequestCosts);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                result.getCreatedBy(),
+                "absence",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.POST
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abRequestCosts.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.POST
+            )
+        );
         return ResponseEntity.created(new URI("/api/ab-request-costs/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -88,6 +114,24 @@ public class AbRequestCostsResource {
         AbRequestCosts abRequestCosts = abRequestCostsMapper.toEntity(abRequestCostsDTO);
         abRequestCosts = abRequestCostsRepository.save(abRequestCosts);
         AbRequestCostsDTO result = abRequestCostsMapper.toDto(abRequestCosts);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                result.getUpdatedBy(),
+                "absence",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.PUT
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                abRequestCosts.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                result.getId().toString(),
+                Action.PUT
+            )
+        );
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, abRequestCostsDTO.getId().toString()))
             .body(result);
@@ -122,7 +166,7 @@ public class AbRequestCostsResource {
         AbRequestCostsDTO abRequestCostsDTO = abRequestCostsMapper.toDto(abRequestCosts);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(abRequestCostsDTO));
     }
-    
+
     public static class YearlyCost{
         private Integer year;
         private Double totalCostInDollars;
@@ -180,7 +224,7 @@ public class AbRequestCostsResource {
         return yearlyCostList;
 
     }
-    
+
     @GetMapping("/ab-request-costs/total-per-year")
     @Timed
     public ResponseEntity<List<YearlyCost>> getAbRequestCostsPerTotalPerYear() {
@@ -212,7 +256,27 @@ public class AbRequestCostsResource {
     @Timed
     public ResponseEntity<Void> deleteAbRequestCosts(@PathVariable Long id) {
         log.debug("REST request to delete AbRequestCosts : {}", id);
+        AbRequestCosts cost = abRequestCostsRepository.findOne(id);
+        AbRequestCostsDTO costDTO = abRequestCostsMapper.toDto(cost);
         abRequestCostsRepository.delete(id);
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                costDTO.getUpdatedBy(),
+                "absence",
+                ENTITY_NAME,
+                id.toString(),
+                Action.DELETE
+            )
+        );
+        applicationEventPublisher.publishEvent(
+            AuditUtil.createAuditEvent(
+                cost.getIdRequest().getIdEmployee().getId().toString(),
+                "employee",
+                ENTITY_NAME,
+                id.toString(),
+                Action.DELETE
+            )
+        );
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 }
