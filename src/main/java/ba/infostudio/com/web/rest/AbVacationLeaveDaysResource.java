@@ -74,8 +74,6 @@ public class AbVacationLeaveDaysResource {
         AbVacationLeaveDaysDTO result = abVacationLeaveDaysMapper.toDto(abVacationLeaveDays);
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                result.getCreatedBy(),
-                "absence",
                 ENTITY_NAME,
                 result.getId().toString(),
                 Action.POST
@@ -126,8 +124,6 @@ public class AbVacationLeaveDaysResource {
 
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                result.getUpdatedBy(),
-                "absence",
                 ENTITY_NAME,
                 result.getId().toString(),
                 Action.PUT
@@ -241,12 +237,9 @@ public class AbVacationLeaveDaysResource {
     public ResponseEntity<Void> deleteAbVacationLeaveDays(@PathVariable Long id) {
         log.debug("REST request to delete AbVacationLeaveDays : {}", id);
         AbVacationLeaveDays abVacationLeaveDays = abVacationLeaveDaysRepository.findOne(id);
-        AbVacationLeaveDaysDTO abVacationLeaveDaysDTO = abVacationLeaveDaysMapper.toDto(abVacationLeaveDays);
         abVacationLeaveDaysRepository.delete(id);
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                abVacationLeaveDaysDTO.getUpdatedBy(),
-                "absence",
                 ENTITY_NAME,
                 id.toString(),
                 Action.DELETE

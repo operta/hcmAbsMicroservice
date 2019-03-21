@@ -80,8 +80,6 @@ public class AbRequestCostsResource {
         AbRequestCostsDTO result = abRequestCostsMapper.toDto(abRequestCosts);
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                result.getCreatedBy(),
-                "absence",
                 ENTITY_NAME,
                 result.getId().toString(),
                 Action.POST
@@ -123,8 +121,6 @@ public class AbRequestCostsResource {
         AbRequestCostsDTO result = abRequestCostsMapper.toDto(abRequestCosts);
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                result.getUpdatedBy(),
-                "absence",
                 ENTITY_NAME,
                 result.getId().toString(),
                 Action.PUT
@@ -265,12 +261,9 @@ public class AbRequestCostsResource {
     public ResponseEntity<Void> deleteAbRequestCosts(@PathVariable Long id) {
         log.debug("REST request to delete AbRequestCosts : {}", id);
         AbRequestCosts cost = abRequestCostsRepository.findOne(id);
-        AbRequestCostsDTO costDTO = abRequestCostsMapper.toDto(cost);
         abRequestCostsRepository.delete(id);
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                costDTO.getUpdatedBy(),
-                "absence",
                 ENTITY_NAME,
                 id.toString(),
                 Action.DELETE

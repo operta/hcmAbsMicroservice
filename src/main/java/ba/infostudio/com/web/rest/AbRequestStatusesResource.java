@@ -96,14 +96,11 @@ public class AbRequestStatusesResource {
 
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                result.getCreatedBy(),
-                "absence",
                 ENTITY_NAME,
                 result.getId().toString(),
                 Action.POST
             )
         );
-        log.debug("SAVED STATUSES : {}", abRequestStatuses.getIdRequest());
         AbRequests abRequests = abRequestsRepository.findOne(abRequestStatuses.getIdRequest().getId());
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
@@ -193,8 +190,6 @@ public class AbRequestStatusesResource {
         AbRequestStatusesDTO result = abRequestStatusesMapper.toDto(abRequestStatuses);
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                result.getUpdatedBy(),
-                "absence",
                 ENTITY_NAME,
                 result.getId().toString(),
                 Action.PUT
@@ -270,12 +265,9 @@ public class AbRequestStatusesResource {
     public ResponseEntity<Void> deleteAbRequestStatuses(@PathVariable Long id) {
         log.debug("REST request to delete AbRequestStatuses : {}", id);
         AbRequestStatuses abRequestStatuses = abRequestStatusesRepository.findOne(id);
-        AbRequestStatusesDTO abRequestStatusesDTO = abRequestStatusesMapper.toDto(abRequestStatuses);
         abRequestStatusesRepository.delete(id);
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                abRequestStatusesDTO.getUpdatedBy(),
-                "absence",
                 ENTITY_NAME,
                 id.toString(),
                 Action.DELETE

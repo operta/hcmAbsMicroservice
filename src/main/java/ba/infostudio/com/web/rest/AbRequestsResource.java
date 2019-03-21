@@ -124,8 +124,6 @@ public class AbRequestsResource {
 
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                result.getCreatedBy(),
-                "absence",
                 ENTITY_NAME,
                 result.getId().toString(),
                 Action.POST
@@ -234,8 +232,6 @@ public class AbRequestsResource {
         AbRequestsDTO result = abRequestsMapper.toDto(abRequests);
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                result.getUpdatedBy(),
-                "absence",
                 ENTITY_NAME,
                 result.getId().toString(),
                 Action.PUT
@@ -485,8 +481,6 @@ public class AbRequestsResource {
                                                             abRequests.getYear());
         applicationEventPublisher.publishEvent(
             AuditUtil.createAuditEvent(
-                abRequestsDTO.getUpdatedBy(),
-                "absence",
                 ENTITY_NAME,
                 id.toString(),
                 Action.DELETE
