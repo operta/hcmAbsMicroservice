@@ -47,12 +47,22 @@ public class AbRequestReportsDTO implements Serializable {
 
     private Long idDocumentLinkId;
 
+    private String idDocumentLinkFilePath;
+
     private Long idDocumentTypeId;
 
     @Lob
     private byte[] idDocumentLinkDocumentBlob;
 
     private String idDocumentLinkDocumentBlobContentType;
+
+    public String getIdDocumentLinkFilePath() {
+        return idDocumentLinkFilePath;
+    }
+
+    public void setIdDocumentLinkFilePath(String idDocumentLinkFilePath) {
+        this.idDocumentLinkFilePath = idDocumentLinkFilePath;
+    }
 
     public byte[] getIdDocumentLinkDocumentBlob() {
         return idDocumentLinkDocumentBlob;
